@@ -1,4 +1,4 @@
-deep_enumerable ![Oh Noes!](https://api.travis-ci.org/dgopstein/deep_enumerable.png)
+deep_enumerable [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable.png?branch=master)](https://travis-ci.org/dgopstein/deep_enumerable)
 ===============
 
 
