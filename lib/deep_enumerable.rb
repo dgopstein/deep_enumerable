@@ -1,6 +1,12 @@
 ##
 # A set of general methods that can be applied to any conformant nested structure
 class DeepEnumerable
+  ##
+  # Turns a list of parent nodes into an accessor key
+  #
+  # Example:
+  #   >> DeepEnumerable.deep_key_from_array([:events, 3, :title])
+  #   => {:events=>{3=>:title}}
   def self.deep_key_from_array(array)
     if array.size > 1
       {array.first => DeepEnumerable.deep_key_from_array(array.drop(1))}
@@ -17,8 +23,8 @@ class Hash
   # Iterate elements of a deeply nested hash
   #
   # Example:
-  #   >> {a: {b: 1, c: 2}}.deep_each
-  #   => [[{:a=>:b}, 1], [{:a=>:c}, 2]]
+  #   >> {event: {id: 1, title: 'bowling'}}.deep_each
+  #   => [[{:event=>:id}, 1], [{:event=>:title}, "bowling"]]
   def deep_each(ancestry=[]) #TODO remove need for ancestry param
     flat_map do |key, val|
       full_ancestry = ancestry + [key]
@@ -40,8 +46,8 @@ class Array
   # Iterate elements of a deeply nested array
   #
   # Example:
-  #   >> [1, [2, 3]].deep_each
-  #   => [[0, 1], [{1=>0}, 2], [{1=>1}, 3]]
+  #   >> [:a, [:b, :c]].deep_each
+  #   => [[0, :a], [{1=>0}, :b], [{1=>1}, :c]]
   def deep_each(ancestry=[])
     each_with_index.flat_map do |val, key|
       full_ancestry = ancestry + [key]
