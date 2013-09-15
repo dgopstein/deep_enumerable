@@ -1,17 +1,6 @@
-#require 'minitest_helper'
 require 'minitest/autorun'
 require 'deep_enumerable.rb'
 require 'set'
-
-describe DeepEnumerable do
-  it "should map ancestry lists to accessor keys" do
-    f = lambda {|x| DeepEnumerable.deep_key_from_array(x)}
-    #assert_equal({}, f.call([]), "empty array should make an empty ancestry hash")
-    assert_equal(:a, f.call([:a]), "ancestry of size 1")
-    assert_equal({:a => :b}, f.call([:a, :b]), "ancestry of size 2")
-    assert_equal({:a => {:b => :c}}, f.call([:a, :b, :c]), "ancestry of size :c")
-  end
-end
 
 describe Hash do
   it "should work with :deep_each" do

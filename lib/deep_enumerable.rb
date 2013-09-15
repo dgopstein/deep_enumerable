@@ -2,20 +2,6 @@
 # A set of general methods that can be applied to any conformant nested structure
 module DeepEnumerable
   ##
-  # Turns a list of parent nodes into an accessor key
-  #
-  # Example:
-  #   >> DeepEnumerable.deep_key_from_array([:events, 3, :title])
-  #   => {:events=>{3=>:title}}
-  def self.deep_key_from_array(array)
-    if array.size > 1
-      {array.first => DeepEnumerable.deep_key_from_array(array.drop(1))}
-    else
-      array.first
-    end
-  end
-
-  ##
   # Iterate elements of a deeply nested structure
   #
   # Example:
@@ -28,19 +14,29 @@ module DeepEnumerable
   #   >> {events: [{title: 'movie'}, {title: 'dinner'}]}.deep_each.to_a
   #   => [[{:events=>{0=>:title}}, "movie"], [{:events=>{1=>:title}}, "dinner"]]
   def deep_each(&block)
-    deep_each_depth_first_map.each(&block)
+    depth_first_map.each(&block)
   end
 
-  def deep_each_depth_first_map(ancestry=[]) #TODO make this private
+  protected
+  def depth_first_map(ancestry=[])
     shallow_each.flat_map do |key, val|
       full_ancestry = ancestry + [key]
-      full_key = DeepEnumerable.deep_key_from_array(full_ancestry) #TODO this is an n^2 operation
+      full_key = deep_key_from_array(full_ancestry) #TODO this is an n^2 operation
  
-      if val.respond_to?(:deep_each_depth_first_map)
-        val.deep_each_depth_first_map(full_ancestry)
+      if val.respond_to?(:depth_first_map, true) # Search protected methods as well
+        val.depth_first_map(full_ancestry)
       else
         [[full_key, val]]
       end
+    end
+  end
+
+  # should be a class method, but Ruby method visibility is a nightmare
+  def deep_key_from_array(array)
+    if array.size > 1
+      {array.first => deep_key_from_array(array.drop(1))}
+    else
+      array.first
     end
   end
 end
