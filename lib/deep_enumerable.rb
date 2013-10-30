@@ -5,7 +5,16 @@ module DeepEnumerable
   # Deeply copy a DeepEnumerable
   def deep_dup
     #deep_each.map(&:dup)
-    #deep_each{|k, v| deep_
+    #deep_each{|k, v| deep_set(k, v)
+    copy = self.dup
+    shallow_each do |k, v|
+      if v.respond_to?(:deep_dup)
+        copy[k] = v.deep_dup
+      else
+        copy[k] = (v.dup rescue v)
+      end
+    end
+    copy
   end
 
   ##
@@ -22,6 +31,10 @@ module DeepEnumerable
   #   => [[{:events=>{0=>:title}}, "movie"], [{:events=>{1=>:title}}, "dinner"]]
   def deep_each(&block)
     depth_first_map.each(&block)
+  end
+
+  def to_a
+    deep_each.to_a
   end
 
   ##
@@ -56,7 +69,7 @@ module DeepEnumerable
         self[key_head].deep_set(key_tail, val)
 	self
       else
-        self[key_head] = {}.deep_set(key_tail, val)
+        self[key_head] = {}.deep_set(key_tail, val) #SHOULD? this default to {}?
 	self
       end
     else

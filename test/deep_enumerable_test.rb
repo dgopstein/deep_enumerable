@@ -80,11 +80,11 @@ def test_deep_dup(de)
   copy = de.deep_dup
 
   mutated_copy = de.deep_dup
-  mutated_copy = copy.deep_each{|k,v| copy.deep_set(k, nil)}
+  mutated_copy.deep_each{|k,v| mutated_copy.deep_set(k, nil)}
 
   refute_equal(mutated_copy, de.deep_dup, "A deep_dup'd copy cannot effect the original")
   assert_equal(de.class, copy.class, "A deep_dup'd copy should be the same class as the original")
-  assert_equal(de.deep_each, copy.deep_each, "A deep_dup'd copy should have the same elements as the original")
+  assert_equal(de.to_a, copy.to_a, "A deep_dup'd copy should have the same elements as the original")
 end
 
 def test_deep_each(de, keys, vals)
@@ -131,7 +131,6 @@ end
 
 def test_deep_get(de, key, val)
   first_key = key.keys.first
-  puts "de: #{de.inspect}"
   assert_equal(de[first_key], de.deep_get(first_key), "deep_get gets shallow values (at a non-leaf)")
   assert_equal(val, de.deep_get(key), "deep_get gets nested values (at a leaf)")
 end
