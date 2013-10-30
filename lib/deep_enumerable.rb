@@ -46,10 +46,21 @@ module DeepEnumerable
   end
 
   ##
+  # Returns the result of running block on each leaf of this DeepEnumerable
+  def deep_map!(&block)
+    if block_given?
+      deep_each{|k,v| deep_set(k, block.call([k, v]))}
+      self
+    else
+      deep_each
+    end
+  end
+  #
+  ##
   # Returns a new nested structure where the result of running block is used as the values
-  #def deep_map_values(&block)
-  #  deep_dup
-  #end
+  def deep_map(&block)
+    deep_dup.deep_map!(&block)
+  end
 
   ##
   # Returns a new nested structure where the result of running block is used as the values

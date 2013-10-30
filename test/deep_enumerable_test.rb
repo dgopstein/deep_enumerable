@@ -17,11 +17,15 @@ describe Hash do
   end
 
   it "should deep_map" do
-    keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
-    vals = (1..5).to_set
-    
-    test_deep_map(nested_hash, keys, vals)
+    test_deep_map(nested_hash)
   end
+
+  #it "should deep_flat_map" do
+  #  keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
+  #  vals = (1..5).to_set
+  #  
+  #  test_deep_flat_map(nested_hash, keys, vals)
+  #end
 
   it "should deep_map_values" do
     vals = {a: {b: Fixnum, c: {d: Fixnum, e: Fixnum}, f: Fixnum}, g: Fixnum}
@@ -54,11 +58,15 @@ describe Array do
   end
 
   it "should deep_map" do
-    keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
-    vals = (:a..:e).to_set
-
-    test_deep_map(nested_array, keys, vals)
+    test_deep_map(nested_array)
   end
+
+  #it "should deep_flat_map" do
+  #  keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
+  #  vals = (:a..:e).to_set
+
+  #  test_deep_flat_map(nested_array, keys, vals)
+  #end
 
   it "should deep_map_values" do
     vals = [Symbol, [Symbol, [[Symbol], Symbol], Symbol]] 
@@ -103,12 +111,15 @@ def test_deep_each(de, keys, vals)
     assert_equal(vals, de.deep_each.map(&:last).to_set, 'maps values')
 end
 
-def test_deep_map(de, keys, vals)
+def test_deep_map(de)
     assert_kind_of(Enumerator, de.deep_map, 'deep_map without a block returns on Enumerator')
     assert_equal(de.class, de.deep_map{|x| x}.class, 'deep_map_values preserves enumerable type')
+    assert_equal(de.deep_dup.deep_each{|k,v| de.deep_set(k, v.class)}, de.deep_map(&:class), "deep_set'ing every element acts like mapping")
+end
+
+def test_flat_map(de, keys, vals)
     assert_equal(keys, de.deep_map(&:first).to_set, 'maps fully qualified keys')
     assert_equal(vals, de.deep_map(&:last).to_set, 'maps values')
-    assert_equal(de.deep_each{|k,v| de.deep_set(k, v.class)}, de.deep_map(&:class), "deep_set'ing every element acts like mapping")
 end
 
 def test_deep_map_values(de, vals)
