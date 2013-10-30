@@ -4,7 +4,8 @@ module DeepEnumerable
   ##
   # Deeply copy a DeepEnumerable
   def deep_dup
-    deep_each.map(&:dup)
+    #deep_each.map(&:dup)
+    #deep_each{|k, v| deep_
   end
 
   ##
@@ -29,10 +30,10 @@ module DeepEnumerable
   # Example:
   #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_map{|k,v| v*2}
   #  => [2, 4, 6, 8, 10]
-  def deep_map(&block)
-    deep_each.map(&block) # TODO this is wrong, copy Scala's Map.map behavior
+  def deep_map_leafs(&block)
+    deep_each.map(&block)
   end
-  #
+
   ##
   # Returns a new nested structure where the result of running block is used as the values
   #def deep_map_values(&block)
@@ -49,22 +50,43 @@ module DeepEnumerable
   # Update a DeepEnumerable using a hash accessor
   #
   def deep_set(key, val)
-    if key.is_a?(Hash)
-      top_key = key.keys.first
-      if self[top_key].respond_to?(:deep_set)
-        self[top_key].deep_set(key[top_key], val)
+    if nested_key?(key)
+      key_head, key_tail = split_key(key)
+      if self[key_head].respond_to?(:deep_set)
+        self[key_head].deep_set(key_tail, val)
 	self
       else
-        self[top_key] = {}.deep_set(key[top_key], val)
+        self[key_head] = {}.deep_set(key_tail, val)
 	self
       end
     else
       self[key] = val
-      self
+      self #SHOULD? return val instead of self
+    end
+  end
+
+  ##
+  # Retrieve a nested element from a DeepEnumerable
+  #
+  def deep_get(key)
+    if nested_key?(key)
+      key_head, key_tail = split_key(key)
+      if self[key_head].respond_to?(:deep_get)
+        self[key_head].deep_get(key_tail)
+      else
+        nil #SHOULD? raise an error
+      end
+    else
+      self[key]
     end
   end
 
   protected
+
+  #def shallow_get(x) # this should technically be defined in Hash/Array individually
+  #  self[x]
+  #end
+
   def depth_first_map(ancestry=[])
     shallow_each.flat_map do |key, val|
       full_ancestry = ancestry + [key]
@@ -78,12 +100,27 @@ module DeepEnumerable
     end
   end
 
-  # should be a class method, but Ruby method visibility is a nightmare
+  # Everything below should be a class method, but Ruby method visibility is a nightmare
   def deep_key_from_array(array)
     if array.size > 1
       {array.first => deep_key_from_array(array.drop(1))}
     else
       array.first
+    end
+  end
+
+  def nested_key?(key)
+    key.is_a?(Hash)
+  end
+
+  def split_key(key)
+    case key
+    when Hash then
+    key_head = key.keys.first
+    key_tail = key[key_head]
+    [key_head, key_tail]
+    when nil then [nil, nil]
+    else [key, nil]
     end
   end
 end
