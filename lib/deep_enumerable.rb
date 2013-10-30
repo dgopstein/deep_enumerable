@@ -2,7 +2,13 @@
 # A set of general methods that can be applied to any conformant nested structure
 module DeepEnumerable
   ##
-  # Iterate elements of a deeply nested structure
+  # Deeply copy a DeepEnumerable
+  def deep_dup
+    deep_each.map(&:dup)
+  end
+
+  ##
+  # Iterate elements of a DeepEnumerable
   #
   # Example:
   #   >> {event: {id: 1, title: 'bowling'}}.deep_each.to_a
@@ -15,6 +21,47 @@ module DeepEnumerable
   #   => [[{:events=>{0=>:title}}, "movie"], [{:events=>{1=>:title}}, "dinner"]]
   def deep_each(&block)
     depth_first_map.each(&block)
+  end
+
+  ##
+  # Returns an array with the results of running block once for every leaf element in the original structure.
+  #
+  # Example:
+  #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_map{|k,v| v*2}
+  #  => [2, 4, 6, 8, 10]
+  def deep_map(&block)
+    deep_each.map(&block) # TODO this is wrong, copy Scala's Map.map behavior
+  end
+  #
+  ##
+  # Returns a new nested structure where the result of running block is used as the values
+  #def deep_map_values(&block)
+  #  deep_dup
+  #end
+
+  ##
+  # Returns a new nested structure where the result of running block is used as the values
+  def deep_map_values(&block)
+    deep_dup
+  end
+
+  ##
+  # Update a DeepEnumerable using a hash accessor
+  #
+  def deep_set(key, val)
+    if key.is_a?(Hash)
+      top_key = key.keys.first
+      if self[top_key].respond_to?(:deep_set)
+        self[top_key].deep_set(key[top_key], val)
+	self
+      else
+        self[top_key] = {}.deep_set(key[top_key], val)
+	self
+      end
+    else
+      self[key] = val
+      self
+    end
   end
 
   protected
