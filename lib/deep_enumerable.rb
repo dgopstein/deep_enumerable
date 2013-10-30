@@ -4,14 +4,12 @@ module DeepEnumerable
   ##
   # Deeply copy a DeepEnumerable
   def deep_dup
-    #deep_each.map(&:dup)
-    #deep_each{|k, v| deep_set(k, v)
     copy = self.dup
     shallow_each do |k, v|
       if v.respond_to?(:deep_dup)
         copy[k] = v.deep_dup
       else
-        copy[k] = (v.dup rescue v)
+        copy[k] = (v.dup rescue v) # FixNum's and Symbol's can't/shouldn't be dup'd
       end
     end
     copy

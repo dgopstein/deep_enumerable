@@ -104,11 +104,11 @@ def test_deep_each(de, keys, vals)
 end
 
 def test_deep_map(de, keys, vals)
-    #assert_kind_of(Enumerator, de.deep_map, 'deep_map without a block returns on Enumerator')
-    #assert_equal(de.class, de.deep_map{|x| x}.class, 'deep_map_values preserves enumerable type')
-    #assert_equal(keys, de.deep_map(&:first).to_set, 'maps fully qualified keys')
-    #assert_equal(vals, de.deep_map(&:last).to_set, 'maps values')
-    #assert_equal(de.deep_each{|k,v| de.deep_set(k, v.class)}, de.deep_map(&:class), "deep_set'ing every element acts like mapping")
+    assert_kind_of(Enumerator, de.deep_map, 'deep_map without a block returns on Enumerator')
+    assert_equal(de.class, de.deep_map{|x| x}.class, 'deep_map_values preserves enumerable type')
+    assert_equal(keys, de.deep_map(&:first).to_set, 'maps fully qualified keys')
+    assert_equal(vals, de.deep_map(&:last).to_set, 'maps values')
+    assert_equal(de.deep_each{|k,v| de.deep_set(k, v.class)}, de.deep_map(&:class), "deep_set'ing every element acts like mapping")
 end
 
 def test_deep_map_values(de, vals)
