@@ -124,7 +124,7 @@ def test_deep_set(de, key)
   de.deep_set(key.keys.first, 43)
   assert_equal(43, de.deep_get(key.keys.first), "deep_set sets shallow values")
 
-  non_existant_key = {does: {nt: :exist}}
+  non_existant_key = {1 => {2 => 3}}
   de.deep_set(non_existant_key, 44)
   assert_equal(44, de.deep_get(non_existant_key))
 end
