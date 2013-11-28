@@ -1,14 +1,10 @@
 require 'minitest/autorun'
-#require 'deep_enumerable.rb'
+require 'deep_enumerable.rb'
 require 'set'
 
 describe Hash do
   nested_hash_generator = lambda{{a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}}
   nested_hash = nested_hash_generator.call
-
-  it "should not be nondeterministic" do
-    assert(false)
-  end
 
   it "should deep_dup" do
     test_deep_dup(nested_hash_generator)
@@ -51,14 +47,6 @@ end
 describe Array do
   nested_array_generator = lambda{[:a, [:b, [[:c], :d], :e]]}
   nested_array = nested_array_generator[]
-
-  i = 0
-  test_nest = lambda{|y| i+=1; puts();p([y.instance_variable_get('@__name__'), i, nested_array == [:a, [:b, [[:c], :d], :e]]])}
-  before do |x|
-    test_nest[x]
-  end
-
-
 
   it "should deep_dup" do
     test_deep_dup(nested_array_generator)
@@ -105,11 +93,7 @@ def test_deep_dup(de_generator)
   assert_equal(de, untouched, "An untouched deep_dup'd enumerable matches the original")
 
   mutated_copy = de.deep_dup
-  puts
-  puts "before: " + de.inspect
-  puts
   mutated_copy.deep_each{|k,v| mutated_copy.deep_set(k, nil)}
-  puts "after: " + de.inspect
 
   refute_equal(mutated_copy, de, "A deep_dup'd copy cannot effect the original")
   assert_equal(untouched, de, "An untouched deep_dup'd enumerable matches the original, even after other stuff is mutated")
@@ -142,9 +126,7 @@ def test_deep_map(de)
 
     mapped = de.deep_map{|k,v| v.class}
     all_the_same = true
-    de.deep_each{|k,v| 
-    puts "#{[k,v].inspect}: #{v.class} ?= #{mapped.deep_get(k)}"
-    all_the_same &&= (v.class == mapped.deep_get(k))}
+    de.deep_each{|k,v| all_the_same &&= (v.class == mapped.deep_get(k))}
     assert(all_the_same, "deep_map maps over all the elements deep_each hits")
 end
 
