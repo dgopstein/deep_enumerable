@@ -45,9 +45,9 @@ module DeepEnumerable
   # Returns an array with the results of running block once for every leaf element in the original structure.
   #
   # Example:
-  #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_map{|k,v| v*2}
+  #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_flat_map{|k,v| v*2}
   #  => [2, 4, 6, 8, 10]
-  def deep_map_leafs(&block)
+  def deep_flat_map(&block)
     deep_each.map(&block)
   end
 
@@ -163,7 +163,6 @@ class Hash
   include DeepEnumerable
 
   alias_method :shallow_keys, :keys
-  #alias_method :shallow_each, :each
 end
 
 ##
@@ -174,8 +173,4 @@ class Array
   def shallow_keys
     (0...size).to_a
   end
-
-  #def shallow_each(&block)
-  #  each_with_index.map{|*a| a.reverse}.each(&block)
-  #end
 end

@@ -21,12 +21,12 @@ describe Hash do
     test_deep_map(nested_hash)
   end
 
-  #it "should deep_flat_map" do
-  #  keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
-  #  vals = (1..5).to_set
-  #  
-  #  test_deep_flat_map(nested_hash, keys, vals)
-  #end
+  it "should deep_flat_map" do
+    keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
+    vals = (1..5).to_set
+    
+    test_deep_flat_map(nested_hash, keys, vals)
+  end
 
   it "should deep_map_values" do
     vals = {a: {b: Fixnum, c: {d: Fixnum, e: Fixnum}, f: Fixnum}, g: Fixnum}
@@ -63,12 +63,12 @@ describe Array do
     test_deep_map(nested_array)
   end
 
-  #it "should deep_flat_map" do
-  #  keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
-  #  vals = (:a..:e).to_set
+  it "should deep_flat_map" do
+    keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
+    vals = (:a..:e).to_set
 
-  #  test_deep_flat_map(nested_array, keys, vals)
-  #end
+    test_deep_flat_map(nested_array, keys, vals)
+  end
 
   it "should deep_map_values" do
     vals = [Symbol, [Symbol, [[Symbol], Symbol], Symbol]] 
@@ -130,9 +130,9 @@ def test_deep_map(de)
     assert(all_the_same, "deep_map maps over all the elements deep_each hits")
 end
 
-def test_flat_map(de, keys, vals)
-    assert_equal(keys, de.deep_map(&:first).to_set, 'maps fully qualified keys')
-    assert_equal(vals, de.deep_map(&:last).to_set, 'maps values')
+def test_deep_flat_map(de, keys, vals)
+    assert_equal(keys, de.deep_flat_map(&:first).to_set, 'maps fully qualified keys')
+    assert_equal(vals, de.deep_flat_map(&:last).to_set, 'maps values')
 end
 
 def test_deep_map_values(de, vals)
