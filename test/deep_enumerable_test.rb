@@ -1,12 +1,17 @@
 require 'minitest/autorun'
-require 'deep_enumerable.rb'
+#require 'deep_enumerable.rb'
 require 'set'
 
 describe Hash do
-  nested_hash = {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}
+  nested_hash_generator = lambda{{a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}}
+  nested_hash = nested_hash_generator.call
+
+  it "should not be nondeterministic" do
+    assert(false)
+  end
 
   it "should deep_dup" do
-    test_deep_dup(nested_hash)
+    test_deep_dup(nested_hash_generator)
   end
 
   it "should deep_each" do
@@ -44,10 +49,19 @@ describe Hash do
 end
 
 describe Array do
-  nested_array = [:a, [:b, [[:c], :d], :e]]
+  nested_array_generator = lambda{[:a, [:b, [[:c], :d], :e]]}
+  nested_array = nested_array_generator[]
+
+  i = 0
+  test_nest = lambda{|y| i+=1; puts();p([y.instance_variable_get('@__name__'), i, nested_array == [:a, [:b, [[:c], :d], :e]]])}
+  before do |x|
+    test_nest[x]
+  end
+
+
 
   it "should deep_dup" do
-    test_deep_dup(nested_array)
+    test_deep_dup(nested_array_generator)
   end
 
   it "should deep_each" do
@@ -84,15 +98,23 @@ describe Array do
   end
 end
 
-def test_deep_dup(de)
-  copy = de.deep_dup
+def test_deep_dup(de_generator)
+  de = de_generator.call
+  untouched = de_generator.call
+
+  assert_equal(de, untouched, "An untouched deep_dup'd enumerable matches the original")
 
   mutated_copy = de.deep_dup
+  puts
+  puts "before: " + de.inspect
+  puts
   mutated_copy.deep_each{|k,v| mutated_copy.deep_set(k, nil)}
+  puts "after: " + de.inspect
 
-  refute_equal(mutated_copy, de.deep_dup, "A deep_dup'd copy cannot effect the original")
-  assert_equal(de.class, copy.class, "A deep_dup'd copy should be the same class as the original")
-  assert_equal(de.to_a, copy.to_a, "A deep_dup'd copy should have the same elements as the original")
+  refute_equal(mutated_copy, de, "A deep_dup'd copy cannot effect the original")
+  assert_equal(untouched, de, "An untouched deep_dup'd enumerable matches the original, even after other stuff is mutated")
+  assert_equal(untouched.class, de.class, "A deep_dup'd copy should be the same class as the original")
+  assert_equal(untouched.to_a, de.to_a, "A deep_dup'd copy should have the same elements as the original")
 end
 
 def test_deep_each(de, keys, vals)
@@ -114,7 +136,16 @@ end
 def test_deep_map(de)
     assert_kind_of(Enumerator, de.deep_map, 'deep_map without a block returns on Enumerator')
     assert_equal(de.class, de.deep_map{|x| x}.class, 'deep_map_values preserves enumerable type')
-    assert_equal(de.deep_dup.deep_each{|k,v| de.deep_set(k, v.class)}, de.deep_map(&:class), "deep_set'ing every element acts like mapping")
+    orig = de.deep_dup
+    de.deep_map{|x, y| y.class}
+    assert_equal(orig, de, "deep_map does not mutate the DeepEnumerable")
+
+    mapped = de.deep_map{|k,v| v.class}
+    all_the_same = true
+    de.deep_each{|k,v| 
+    puts "#{[k,v].inspect}: #{v.class} ?= #{mapped.deep_get(k)}"
+    all_the_same &&= (v.class == mapped.deep_get(k))}
+    assert(all_the_same, "deep_map maps over all the elements deep_each hits")
 end
 
 def test_flat_map(de, keys, vals)
@@ -125,19 +156,20 @@ end
 def test_deep_map_values(de, vals)
   mapped = de.deep_map_values(&:class)
   assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
-  assert_equal(vals, de.map_values(&:class))
+  assert_equal(vals, de.deep_map_values(&:class))
 end
 
 def test_deep_set(de, key)
-  de.deep_set(key, 42)
-  assert_equal(42, de.deep_get(key), "deep_set sets deep values")
+  dc = de.deep_dup
+  dc.deep_set(key, 42)
+  assert_equal(42, dc.deep_get(key), "deep_set sets deep values")
 
-  de.deep_set(key.keys.first, 43)
-  assert_equal(43, de.deep_get(key.keys.first), "deep_set sets shallow values")
+  dc.deep_set(key.keys.first, 43)
+  assert_equal(43, dc.deep_get(key.keys.first), "deep_set sets shallow values")
 
   non_existant_key = {1 => {2 => 3}}
-  de.deep_set(non_existant_key, 44)
-  assert_equal(44, de.deep_get(non_existant_key))
+  dc.deep_set(non_existant_key, 44)
+  assert_equal(44, dc.deep_get(non_existant_key))
 end
 
 def test_deep_get(de, key, val)

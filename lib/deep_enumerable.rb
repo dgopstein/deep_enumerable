@@ -1,6 +1,12 @@
 ##
 # A set of general methods that can be applied to any conformant nested structure
 module DeepEnumerable
+
+  #TODO test this
+  def shallow_each(&block)
+    shallow_keys.map{|k| [k, self[k]]}.each(&block)
+  end
+
   ##
   # Deeply copy a DeepEnumerable
   def deep_dup
@@ -64,8 +70,12 @@ module DeepEnumerable
 
   ##
   # Returns a new nested structure where the result of running block is used as the values
+  def deep_map_values!(&block)
+    deep_map!{|k, v| block.call(v)}
+  end
+
   def deep_map_values(&block)
-    deep_dup
+    deep_dup.deep_map_values!(&block)
   end
 
   ##
@@ -152,7 +162,8 @@ end
 class Hash
   include DeepEnumerable
 
-  alias_method :shallow_each, :each
+  alias_method :shallow_keys, :keys
+  #alias_method :shallow_each, :each
 end
 
 ##
@@ -160,7 +171,11 @@ end
 class Array
   include DeepEnumerable
 
-  def shallow_each
-    each_with_index.map{|*a| a.reverse}
+  def shallow_keys
+    (0...size).to_a
   end
+
+  #def shallow_each(&block)
+  #  each_with_index.map{|*a| a.reverse}.each(&block)
+  #end
 end
