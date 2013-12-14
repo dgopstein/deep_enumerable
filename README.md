@@ -23,7 +23,7 @@ Ruby has excellent native support for a few common collections such as Array, Ha
      :level => :error,
      :appender => {
        :file => '/var/log/error',
-       :poll_interval => :∞
+       :update_interval => :∞
      }
    }
 ```
@@ -35,7 +35,7 @@ We might reasonably want to do some sanity checking on the types of the configur
 => true
 >> String === conf_values[:appender][:file]
 => true
->> Fixnum === conf_values[:appender][:poll_interval]
+>> Fixnum === conf_values[:appender][:write_interval]
 => false
 >> String === conf_values[:output][:format]
 NoMethodError: undefined method `[]' for nil:NilClass
@@ -48,13 +48,13 @@ Instead using a DeepEnumerable we can model our rules as data, and find an error
      :level => Symbol,
      :appender => {
        :file => String,
-       :poll_interval => Fixnum
+       :update_interval => Fixnum
      },
      :output => {:format => String}
    }
 
 >> conf_types.deep_diff(conf_values, &:===.to_proc)
-=> {:appender=>{:poll_interval=>[Fixnum, :∞]}, :output=>[{:format=>String}, nil]}
+=> {:appender=>{:update_interval=>[Fixnum, :∞]}, :output=>[{:format=>String}, nil]}
 
 ```
 
