@@ -79,6 +79,39 @@ module DeepEnumerable
   end
 
   ##
+  # Describes the differences between two DeepEnumerables. The structure
+  # of the union of both collections is mapped onto a hash. For any element
+  # that differs between collections, values are placed into a length-2 array
+  #
+  # Example:
+  #
+  # >> {:name=>"alice", :age=>25}.deep_diff(:name=>"bob", :age=>25)
+  # => {:name=>["alice", "bob"]}
+  #
+  # >> bob = {:friends=>["alice","carol"]}
+  # >> carol = {:friends=>["alice","bob"]}
+  # >> bob.deep_diff(carol)
+  # => {:friends=>{1=>["carol", "bob"]}}
+  #
+  def deep_diff(other, &block)
+    (shallow_keys + other.shallow_keys).inject({}) do |res, key|
+      s_val = (self[key] rescue nil) #TODO don't rely on rescue
+      o_val = (other[key] rescue nil)
+
+      comparator = block || :==.to_proc
+
+      if s_val.respond_to?(:deep_diff) && o_val.respond_to?(:deep_diff)
+        diff = s_val.deep_diff(o_val, &block)
+        diff.empty? ? res : res.merge(key => diff)
+      elsif comparator.call(s_val, o_val)
+        res
+      else
+        res.merge(key => [s_val, o_val])
+      end
+    end
+  end
+
+  ##
   # Update a DeepEnumerable using a hash accessor
   #
   def deep_set(key, val)
@@ -99,6 +132,11 @@ module DeepEnumerable
 
   ##
   # Retrieve a nested element from a DeepEnumerable
+  #
+  # Example:
+  #
+  # >> {"a"=>{"a"=>"aardvark", "b"=>["abacus", "abadon"], "c"=>"actuary"}}.deep_get("a"=>"b")
+  # => ["abacus", "abadon"]
   #
   def deep_get(key)
     if nested_key?(key)

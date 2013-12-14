@@ -10,6 +10,43 @@ describe Hash do
     test_deep_dup(nested_hash_generator)
   end
 
+  it "should deep_diff" do
+    a = {:a => {:b => :c}}
+    b = {:a => {:b => :d}}
+    diff = {:a => {:b => [:c, :d]}}
+    assert_equal(diff, a.deep_diff(b), "swapped node")
+
+    a = {:a => {:b => :c}}
+    b = {:a => :b}
+    diff = {:a => [{:b => :c}, :b]}
+    assert_equal(diff, a.deep_diff(b), "different values")
+
+    a = {:a => {:b => :c}}
+    b = {:a => :b, :c => :d}
+    diff = {:a => [{:b => :c}, :b], :c => [nil, :d]}
+    assert_equal(diff, a.deep_diff(b), "new key")
+
+    a = [0, :b, 2]
+    b = {1 => :b, :c => :d}
+    diff = {0 => [0, nil], 2 => [2, nil], :c => [nil, :d]}
+    assert_equal(diff, a.deep_diff(b), "array vs hash")
+
+    a = [{0 => :a}]
+    b = {0 => [:a]}
+    diff = {}
+    assert_equal(diff, a.deep_diff(b), "nested array vs hash")
+
+    a = {:a => Hash}
+    b = {:a => {1 => 2}}
+    diff = {}
+    assert_equal(diff, a.deep_diff(b, &:===.to_proc), "class equality with to_proc")
+
+    a = {:a => Array}
+    b = {:a => {1 => 2}}
+    diff = {:a => [Array, {1 => 2}]}
+    assert_equal(diff, a.deep_diff(b){|a,b| a === b}, "class inequality with block")
+  end
+
   it "should deep_each" do
     keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
     vals = (1..5).to_set
