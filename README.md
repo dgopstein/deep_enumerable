@@ -1,4 +1,4 @@
-Deep Enumerable (pre-alpha) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable.png?branch=master)](https://travis-ci.org/dgopstein/deep_enumerable)
+Deep Enumerable (α) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable.png?branch=master)](https://travis-ci.org/dgopstein/deep_enumerable)
 ===============
 
 A library for manipulating nested collections in Ruby
