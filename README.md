@@ -53,7 +53,7 @@ Instead using a DeepEnumerable we can model our rules as data, and find an error
      :output => {:format => String}
    }
 
->> conf_types.deep_diff(conf_values, &:===.to_proc)
+>> conf_types.deep_diff(conf_values, &:===)
 => {:appender=>{:update_interval=>[Fixnum, :∞]}, :output=>[{:format=>String}, nil]}
 
 ```

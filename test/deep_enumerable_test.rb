@@ -39,7 +39,7 @@ describe Hash do
     a = {:a => Hash}
     b = {:a => {1 => 2}}
     diff = {}
-    assert_equal(diff, a.deep_diff(b, &:===.to_proc), "class equality with to_proc")
+    assert_equal(diff, a.deep_diff(b, &:===), "class equality with to_proc")
 
     a = {:a => Array}
     b = {:a => {1 => 2}}
