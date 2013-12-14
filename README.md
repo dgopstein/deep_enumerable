@@ -3,6 +3,8 @@ Deep Enumerable (pre-alpha) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_en
 
 A library for manipulating nested collections in Ruby
 
+DeepEnumerable is an attempt to create a human-oriented general purpose collections library for nested collections. The main goals of this project are to improve ruby projects that deal with nested collections by improving readability and code reuse while promoting functional programming and declarative data-modeling.
+
 ## What is a nested collection?
 A nested collection is a data structure wrapped in another datastructure!
 
@@ -12,7 +14,7 @@ Many other collections can be nested as well, e.g. Hashes: `{:a => :b, :c => {:d
 
 Collection can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
 
-## Why do we need DeepEnumerable?
+## What is DeepEnumerable?
 
 Ruby has excellent native support for a few common collections such as Array, Hash, Set and Range. At the heart of each of these collection libraries is the Enumerable module which provides dozens of general purpose methods (map, inject, select) implemented on top of each base class's :each method. Enumerable's methods make operating on traditional collections clear, concise and less error prone. Dealing with nested collections, however, is still relatively clunky. Consider a simple logging configuration:
 
@@ -26,7 +28,7 @@ Ruby has excellent native support for a few common collections such as Array, Ha
    }
 ```
 
-We might reasonably want to do some sanity checking on the types of the configuration. For instance, if :max_size were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is very tedious:
+We might reasonably want to do some sanity checking on the types of the configuration. For instance, if :max_size were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is tedious and potentially error producing:
 
 ```ruby
 >> Symbol === conf_values[:level]
@@ -35,6 +37,8 @@ We might reasonably want to do some sanity checking on the types of the configur
 => true
 >> Fixnum === conf_values[:appender][:poll_interval]
 => false
+>> String === conf_values[:output][:format]
+NoMethodError: undefined method `[]' for nil:NilClass
 ```
 
 Instead using a DeepEnumerable we can model our rules as data, and find an errors in a single expression:
@@ -45,24 +49,45 @@ Instead using a DeepEnumerable we can model our rules as data, and find an error
      :appender => {
        :file => String,
        :poll_interval => Fixnum
-     }  
+     },
+     :output => {:format => String}
    }
 
 >> conf_types.deep_diff(conf_values, &:===.to_proc)
-=> {:appender=>{:poll_interval=>[Fixnum, :∞]}}
+=> {:appender=>{:poll_interval=>[Fixnum, :∞]}, :output=>[{:format=>String}, nil]}
 
 ```
 
-DeepEnumerable is an attempt to create a human-oriented general purpose collection library for nested collections. Code reuse.
+## What else is DeepEnumerable?
 
+DeepEnumerable provides a few interesting methods on a couple different standard data structuers. Here are some examples:
 
+Iterate and transform leaf nodes:
+```ruby
+>> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_flat_map{|k,v| v*2}
+=> [2, 4, 6, 8, 10]
+```
 
-Iterate elements of a DeepEnumerable:
->> {event: {id: 1, title: 'bowling'}}.deep_each.to_a
-=> [[{:event=>:id}, 1], [{:event=>:title}, "bowling"]]
+Retrieve a nested element from a DeepEnumerable:
 
->> [:a, [:b, :c]].deep_each.to_a
-=> [[0, :a], [{1=>0}, :b], [{1=>1}, :c]]
+```ruby
+>> prefix_tree = {"a"=>{"a"=>"aardvark", "b"=>["abacus", "abaddon"], "c"=>"actuary"}}
+>> prefix_tree.deep_get("a"=>"b")
+=> ["abacus", "abadon"]
+```
 
->> {events: [{title: 'movie'}, {title: 'dinner'}]}.deep_each.to_a
-=> [[{:events=>{0=>:title}}, "movie"], [{:events=>{1=>:title}}, "dinner"]]
+## What else could be a DeepEnumerable in the future?
+
+Right now DeepEnumerable ships with default implementations for Array's and Hash's. Like Enumerable, all of DeepEnumerable's methods are built on top of only a single iterator, :shallow_keys, which means if your data structure implements :shallow_keys, your data structure can simply include the DeepEnumerable module and get a mixin-ful of useful methods. If implementing your own :shallow_keys sounds scary, just look to the default implementations in Array and Hash - they're quite modest:
+
+Hash:
+```ruby
+alias_method :shallow_keys, :keys
+```
+
+Array:
+```ruby
+def shallow_keys
+  (0...size).to_a
+end
+```
