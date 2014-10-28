@@ -12,7 +12,7 @@ For example, a flat array might look like: `[1, 2, 3]` while a nested array migh
 
 Many other collections can be nested as well, e.g. Hashes: `{:a => :b, :c => {:d => :e}}`
 
-Collection can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
+Collections can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
 
 ## What is DeepEnumerable?
 
