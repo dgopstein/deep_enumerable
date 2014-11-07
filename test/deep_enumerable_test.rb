@@ -75,6 +75,16 @@ describe Hash do
     test_deep_values(nested_hash, vals)
   end
 
+  it "should map_values" do
+    vals = {a: Hash, g: Fixnum}
+
+    test_map_values(nested_hash, vals)
+
+    # test the two-arg version
+    assert_equal(vals,                   nested_hash.map_values{|_, v| v.class}) 
+    assert_equal({a: Symbol, g: Symbol}, nested_hash.map_values{|k, _| k.class}) 
+  end
+
   it "should deep_map_values" do
     vals = {a: {b: Fixnum, c: {d: Fixnum, e: Fixnum}, f: Fixnum}, g: Fixnum}
 
@@ -125,6 +135,16 @@ describe Array do
     vals = [:a, :b, :c, :d, :e]
 
     test_deep_values(nested_array, vals)
+  end
+
+  it "should map_values" do
+    vals = [Symbol, Array] 
+
+    test_map_values(nested_array, vals)
+
+    # test the two-arg version
+    assert_equal(vals,             nested_array.map_values{|_, v| v.class}) 
+    assert_equal([Fixnum, Fixnum], nested_array.map_values{|k, _| k.class}) 
   end
 
   it "should deep_map_values" do
@@ -202,10 +222,16 @@ def test_deep_values(de, values)
   assert_equal(values, de.deep_values, 'returns leaf values')
 end
 
+def test_map_values(de, vals)
+  mapped = de.map_values(&:class)
+  assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
+  assert_equal(vals, mapped)
+end
+
 def test_deep_map_values(de, vals)
   mapped = de.deep_map_values(&:class)
   assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
-  assert_equal(vals, de.deep_map_values(&:class))
+  assert_equal(vals, mapped)
 end
 
 def test_deep_set(de, key)

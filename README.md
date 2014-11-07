@@ -12,7 +12,7 @@ For example, a flat array might look like: `[1, 2, 3]` while a nested array migh
 
 Many other collections can be nested as well, e.g. Hashes: `{:a => :b, :c => {:d => :e}}`
 
-Collection can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
+Collections can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
 
 ## What is DeepEnumerable?
 
@@ -28,14 +28,14 @@ Ruby has excellent native support for a few common collections such as Array, Ha
    }
 ```
 
-We might reasonably want to do some sanity checking on the types of the configuration. For instance, if :max_size were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is tedious and potentially error producing:
+We might reasonably want to do some sanity checking on the types of the configuration. For instance, if :update_interval were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is tedious and potentially error producing:
 
 ```ruby
 >> Symbol === conf_values[:level]
 => true
 >> String === conf_values[:appender][:file]
 => true
->> Fixnum === conf_values[:appender][:write_interval]
+>> Fixnum === conf_values[:appender][:update_interval]
 => false
 >> String === conf_values[:output][:format]
 NoMethodError: undefined method `[]' for nil:NilClass

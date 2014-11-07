@@ -6,6 +6,32 @@ module DeepEnumerable
   def shallow_each(&block)
     shallow_keys.map{|k| [k, self[k]]}.each(&block)
   end
+ 
+  ##
+  # Replaces every top-level element with the result of the given block
+  def map_values!(&block)
+    # Provide a homogenous |k,v| iterator for Arrays/Hashes/DeepEnumerables
+    def key_value_pairs
+      shallow_keys.map{|k| [k, self[k]]}
+    end
+
+    key_value_pairs.each do |k, v|
+        self[k] = 
+          if block.arity == 2
+            block.call(k, v)
+          else
+            block.call(v)
+          end
+    end
+
+    self
+  end
+
+  ##
+  # Returns a new collection where every top-level element is replaced with the result of the given block
+  def map_values(&block)
+    deep_dup.map_values!(&block)
+  end
 
   ##
   # Deeply copy a DeepEnumerable
@@ -61,7 +87,7 @@ module DeepEnumerable
       deep_each
     end
   end
-  #
+ 
   ##
   # Returns a new nested structure where the result of running block is used as the values
   def deep_map(&block)
@@ -75,11 +101,13 @@ module DeepEnumerable
   end
 
   ##
-  # Returns a new nested structure where the result of running block is used as the values
+  # Modifies this collection to use the result of block as the values
   def deep_map_values!(&block)
     deep_map!{|_, v| block.call(v)}
   end
 
+  ##
+  # Returns a new nested structure where the result of running block is used as the values
   def deep_map_values(&block)
     deep_dup.deep_map_values!(&block)
   end
