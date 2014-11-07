@@ -69,13 +69,24 @@ module DeepEnumerable
   end
 
   ##
+  # Return all leaf values
+  def deep_values
+    deep_flat_map{|_, v| v}
+  end
+
+  ##
   # Returns a new nested structure where the result of running block is used as the values
   def deep_map_values!(&block)
-    deep_map!{|k, v| block.call(v)}
+    deep_map!{|_, v| block.call(v)}
   end
 
   def deep_map_values(&block)
     deep_dup.deep_map_values!(&block)
+  end
+
+  # Fold over all leaf nodes
+  def deep_inject(initial, &block)
+    deep_each.inject(initial, &block)
   end
 
   ##

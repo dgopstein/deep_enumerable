@@ -58,11 +58,21 @@ describe Hash do
     test_deep_map(nested_hash)
   end
 
+  it "should deep_inject" do
+    test_deep_inject(nested_hash)
+  end
+
   it "should deep_flat_map" do
     keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
     vals = (1..5).to_set
     
     test_deep_flat_map(nested_hash, keys, vals)
+  end
+
+  it "should deep_values" do
+    vals = [1, 2, 3, 4, 5]
+
+    test_deep_values(nested_hash, vals)
   end
 
   it "should deep_map_values" do
@@ -100,11 +110,21 @@ describe Array do
     test_deep_map(nested_array)
   end
 
+  it "should deep_inject" do
+    test_deep_inject(nested_array)
+  end
+
   it "should deep_flat_map" do
     keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
     vals = (:a..:e).to_set
 
     test_deep_flat_map(nested_array, keys, vals)
+  end
+
+  it "should deep_values" do
+    vals = [:a, :b, :c, :d, :e]
+
+    test_deep_values(nested_array, vals)
   end
 
   it "should deep_map_values" do
@@ -154,6 +174,12 @@ def test_deep_each(de, keys, vals)
     assert_equal(vals, de.deep_each.map(&:last).to_set, 'maps values')
 end
 
+def test_deep_inject(de)
+    expected = "test: "+de.deep_values.join
+    sum = de.deep_inject("test: ") {|str, (k, v)| str+v.to_s}
+    assert_equal(expected, sum, 'injects all values into argument string')
+end
+
 def test_deep_map(de)
     assert_kind_of(Enumerator, de.deep_map, 'deep_map without a block returns on Enumerator')
     assert_equal(de.class, de.deep_map{|x| x}.class, 'deep_map_values preserves enumerable type')
@@ -170,6 +196,10 @@ end
 def test_deep_flat_map(de, keys, vals)
     assert_equal(keys, de.deep_flat_map(&:first).to_set, 'maps fully qualified keys')
     assert_equal(vals, de.deep_flat_map(&:last).to_set, 'maps values')
+end
+
+def test_deep_values(de, values)
+  assert_equal(values, de.deep_values, 'returns leaf values')
 end
 
 def test_deep_map_values(de, vals)
