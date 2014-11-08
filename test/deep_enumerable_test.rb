@@ -75,6 +75,16 @@ describe Hash do
     test_deep_values(nested_hash, vals)
   end
 
+  it "should map_keys" do
+    upper_keys = {A: {b: 1, c: {d: 2, e: 3}, f: 4}, G: 5}
+    class_keys = {Hash => {b: 1, c: {d: 2, e: 3}, f: 4}, Fixnum => 5}
+
+    assert_equal(upper_keys, nested_hash.map_keys(&:upcase))
+
+    # test the two-arg version
+    assert_equal(class_keys, nested_hash.map_keys{|_, v| v.class})
+  end
+
   it "should map_values" do
     vals = {a: Hash, g: Fixnum}
 
@@ -135,6 +145,15 @@ describe Array do
     vals = [:a, :b, :c, :d, :e]
 
     test_deep_values(nested_array, vals)
+  end
+
+  it "should map_keys" do
+    array = [2, 3, 1, 0, 5]
+    every_other = [2, nil, 3, nil, 1, nil, 0, nil, 5]
+    by_value = [0, 1, 2, 3, nil, 5]
+
+    assert_equal(every_other, array.map_keys{|k| k*2})
+    assert_equal(by_value, array.map_keys{|_, v| v})
   end
 
   it "should map_values" do
