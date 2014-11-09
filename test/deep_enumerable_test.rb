@@ -6,10 +6,6 @@ describe Hash do
   nested_hash_generator = lambda{{a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}}
   nested_hash = nested_hash_generator.call
 
-  it "should deep_dup" do
-    test_deep_dup(nested_hash_generator)
-  end
-
   it "should deep_diff" do
     a = {:a => {:b => :c}}
     b = {:a => {:b => :d}}
@@ -47,6 +43,10 @@ describe Hash do
     assert_equal(diff, a.deep_diff(b){|a,b| a === b}, "class inequality with block")
   end
 
+  it "should deep_dup" do
+    test_deep_dup(nested_hash_generator)
+  end
+
   it "should deep_each" do
     keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
     vals = (1..5).to_set
@@ -54,19 +54,34 @@ describe Hash do
     test_deep_each(nested_hash, keys, vals)
   end
 
-  it "should deep_map" do
-    test_deep_map(nested_hash)
+  it "should deep_flat_map" do
+    keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
+    vals = (1..5).to_set
+    
+    test_deep_flat_map(nested_hash, keys, vals)
+  end
+
+  it "should deep_get" do
+    test_deep_get(nested_hash, {:a => :b}, 1)
   end
 
   it "should deep_inject" do
     test_deep_inject(nested_hash)
   end
 
-  it "should deep_flat_map" do
-    keys = [{:a=>:b}, {:a=>{:c=>:d}}, {:a=>{:c=>:e}}, {:a=>:f}, :g].to_set
-    vals = (1..5).to_set
-    
-    test_deep_flat_map(nested_hash, keys, vals)
+  it "should deep_map" do
+    test_deep_map(nested_hash)
+  end
+
+  it "should deep_map_values" do
+    vals = {a: {b: Fixnum, c: {d: Fixnum, e: Fixnum}, f: Fixnum}, g: Fixnum}
+
+    test_deep_map_values(nested_hash, vals)
+  end
+
+  it "should deep_set" do
+    nested_hash2 = {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}
+    test_deep_set(nested_hash2, {:a => :c})
   end
 
   it "should deep_values" do
@@ -94,26 +109,13 @@ describe Hash do
     assert_equal(vals,                   nested_hash.map_values{|_, v| v.class}) 
     assert_equal({a: Symbol, g: Symbol}, nested_hash.map_values{|k, _| k.class}) 
   end
-
-  it "should deep_map_values" do
-    vals = {a: {b: Fixnum, c: {d: Fixnum, e: Fixnum}, f: Fixnum}, g: Fixnum}
-
-    test_deep_map_values(nested_hash, vals)
-  end
-
-  it "should deep_set" do
-    nested_hash2 = {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}
-    test_deep_set(nested_hash2, {:a => :c})
-  end
-
-  it "should deep_get" do
-    test_deep_get(nested_hash, {:a => :b}, 1)
-  end
 end
 
 describe Array do
   nested_array_generator = lambda{[:a, [:b, [[:c], :d], :e]]}
   nested_array = nested_array_generator[]
+
+  #TODO test deep_diff
 
   it "should deep_dup" do
     test_deep_dup(nested_array_generator)
@@ -126,19 +128,34 @@ describe Array do
     test_deep_each(nested_array, keys, vals)
   end
 
-  it "should deep_map" do
-    test_deep_map(nested_array)
+  it "should deep_flat_map" do
+    keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
+    vals = (:a..:e).to_set
+
+    test_deep_flat_map(nested_array, keys, vals)
+  end
+
+  it "should deep_get" do
+    test_deep_get(nested_array, {1 => 0}, :b)
   end
 
   it "should deep_inject" do
     test_deep_inject(nested_array)
   end
 
-  it "should deep_flat_map" do
-    keys = [0, {1 => 0}, {1 => {1 => {0 => 0}}}, {1 => {1 => 1}}, {1 => 2}].to_set
-    vals = (:a..:e).to_set
+  it "should deep_map" do
+    test_deep_map(nested_array)
+  end
 
-    test_deep_flat_map(nested_array, keys, vals)
+  it "should deep_map_values" do
+    vals = [Symbol, [Symbol, [[Symbol], Symbol], Symbol]] 
+
+    test_deep_map_values(nested_array, vals)
+  end
+
+  it "should deep_set" do
+    nested_array2 = [:a, [:b, [[:c], :d], :e]]
+    test_deep_set(nested_array2, {1 => 1})
   end
 
   it "should deep_values" do
@@ -164,21 +181,6 @@ describe Array do
     # test the two-arg version
     assert_equal(vals,             nested_array.map_values{|_, v| v.class}) 
     assert_equal([Fixnum, Fixnum], nested_array.map_values{|k, _| k.class}) 
-  end
-
-  it "should deep_map_values" do
-    vals = [Symbol, [Symbol, [[Symbol], Symbol], Symbol]] 
-
-    test_deep_map_values(nested_array, vals)
-  end
-
-  it "should deep_set" do
-    nested_array2 = [:a, [:b, [[:c], :d], :e]]
-    test_deep_set(nested_array2, {1 => 1})
-  end
-
-  it "should deep_get" do
-    test_deep_get(nested_array, {1 => 0}, :b)
   end
 end
 
@@ -213,6 +215,17 @@ def test_deep_each(de, keys, vals)
     assert_equal(vals, de.deep_each.map(&:last).to_set, 'maps values')
 end
 
+def test_deep_flat_map(de, keys, vals)
+    assert_equal(keys, de.deep_flat_map(&:first).to_set, 'maps fully qualified keys')
+    assert_equal(vals, de.deep_flat_map(&:last).to_set, 'maps values')
+end
+
+def test_deep_get(de, key, val)
+  first_key = key.keys.first
+  assert_equal(de[first_key], de.deep_get(first_key), "deep_get gets shallow values (at a non-leaf)")
+  assert_equal(val, de.deep_get(key), "deep_get gets nested values (at a leaf)")
+end
+
 def test_deep_inject(de)
     expected = "test: "+de.deep_values.join
     sum = de.deep_inject("test: ") {|str, (k, v)| str+v.to_s}
@@ -230,21 +243,6 @@ def test_deep_map(de)
     all_the_same = true
     de.deep_each{|k,v| all_the_same &&= (v.class == mapped.deep_get(k))}
     assert(all_the_same, "deep_map maps over all the elements deep_each hits")
-end
-
-def test_deep_flat_map(de, keys, vals)
-    assert_equal(keys, de.deep_flat_map(&:first).to_set, 'maps fully qualified keys')
-    assert_equal(vals, de.deep_flat_map(&:last).to_set, 'maps values')
-end
-
-def test_deep_values(de, values)
-  assert_equal(values, de.deep_values, 'returns leaf values')
-end
-
-def test_map_values(de, vals)
-  mapped = de.map_values(&:class)
-  assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
-  assert_equal(vals, mapped)
 end
 
 def test_deep_map_values(de, vals)
@@ -266,8 +264,13 @@ def test_deep_set(de, key)
   assert_equal(44, dc.deep_get(non_existant_key))
 end
 
-def test_deep_get(de, key, val)
-  first_key = key.keys.first
-  assert_equal(de[first_key], de.deep_get(first_key), "deep_get gets shallow values (at a non-leaf)")
-  assert_equal(val, de.deep_get(key), "deep_get gets nested values (at a leaf)")
+def test_deep_values(de, values)
+  assert_equal(values, de.deep_values, 'returns leaf values')
 end
+
+def test_map_values(de, vals)
+  mapped = de.map_values(&:class)
+  assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
+  assert_equal(vals, mapped)
+end
+
