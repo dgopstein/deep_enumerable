@@ -16,7 +16,7 @@ Collections can even be nested inside collections of a different type, as in lis
 
 ## What is DeepEnumerable?
 
-Ruby has excellent native support for a few common collections such as Array, Hash, Set and Range. At the heart of each of these collection libraries is the Enumerable module which provides dozens of general purpose methods (map, inject, select) implemented on top of each base class's :each method. Enumerable's methods make operating on traditional collections clear, concise and less error prone. Dealing with nested collections, however, is still relatively clunky. Consider a simple logging configuration:
+Ruby has excellent native support for a few common collections such as Array, Hash, Set and Range. At the heart of each of these collection libraries is the Enumerable module which provides dozens of general purpose methods (map, inject, select) implemented on top of each base class's `:each` method. Enumerable's methods make operating on traditional collections clear, concise and less error prone. Dealing with nested collections, however, is still relatively clunky. Consider a simple logging configuration:
 
 ```ruby
 >> conf_values = {
@@ -28,7 +28,7 @@ Ruby has excellent native support for a few common collections such as Array, Ha
    }
 ```
 
-We might reasonably want to do some sanity checking on the types of the configuration. For instance, if :update_interval were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is tedious and potentially error producing:
+We might reasonably want to do some sanity checking on the types of the configuration. For instance, if `:update_interval` were not an integer we would like to know before trying to operate on that value. With vanilla ruby we would need to imperatively test every element, which is tedious and potentially error producing:
 
 ```ruby
 >> Symbol === conf_values[:level]
@@ -78,7 +78,7 @@ Retrieve a nested element from a DeepEnumerable:
 
 ## What else could be a DeepEnumerable in the future?
 
-Right now DeepEnumerable ships with default implementations for Array's and Hash's. Like Enumerable, all of DeepEnumerable's methods are built on top of only a single iterator, :shallow_keys, which means if your data structure implements :shallow_keys, your data structure can simply include the DeepEnumerable module and get a mixin-ful of useful methods. If implementing your own :shallow_keys sounds scary, just look to the default implementations in Array and Hash - they're quite modest:
+Right now DeepEnumerable ships with default implementations for Array's and Hash's. Like Enumerable, all of DeepEnumerable's methods are built on top of only a single iterator, `:shallow_keys`, which means if your data structure implements `:shallow_keys`, your data structure can simply include the DeepEnumerable module and get a mixin-ful of useful methods. If implementing your own `:shallow_keys` sounds scary, just look to the default implementations in Array and Hash - they're quite modest:
 
 Hash:
 ```ruby
