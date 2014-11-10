@@ -6,6 +6,19 @@ describe Hash do
   nested_hash_generator = lambda{{a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}}
   nested_hash = nested_hash_generator.call
 
+  # TODO delete is not defined on Enumerable
+  # it "should deep_delete_key" do
+  #   # delete one leaf of many
+  #   a = nested_hash_generator[]
+  #   a.deep_delete_key({a: {b: :e}})
+  #   expected = {a: {b: 1, c: {d: 2}, f: 4}, g: 5}
+  #   assert_equal(expected, a)
+    
+  #   # delete last element in parent collection
+  #   # delete non-leaf
+  #   # delete non-existent key
+  # end
+
   it "should deep_diff" do
     a = {:a => {:b => :c}}
     b = {:a => {:b => :d}}
@@ -78,6 +91,11 @@ describe Hash do
 
     test_deep_map_values(nested_hash, vals)
   end
+ 
+  it "should deep_select" do
+    expected = {a: {c: {d: 2}, f: 4}}
+    assert_equal(expected, nested_hash.deep_select(&:even?))
+  end
 
   it "should deep_set" do
     nested_hash2 = {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}
@@ -114,6 +132,19 @@ end
 describe Array do
   nested_array_generator = lambda{[:a, [:b, [[:c], :d], :e]]}
   nested_array = nested_array_generator[]
+
+  # TODO delete is not defined on Enumerable
+  # it "should deep_delete_key" do
+  #   # delete one leaf of many
+  #   a = nested_array_generator[]
+  #   a.deep_delete_key({1 => 1})
+  #   expected = [:a, [:b, :d], :e]
+  #   assert_equal(expected, a)
+    
+  #   # delete last element in parent collection
+  #   # delete non-leaf
+  #   # delete non-existent key
+  # end
 
   #TODO test deep_diff
 
@@ -153,8 +184,13 @@ describe Array do
     test_deep_map_values(nested_array, vals)
   end
 
+  it "should deep_select" do
+    expected = [[:b, [[], :d]]]
+    assert_equal(expected, nested_array.deep_select{|sym| sym.to_s.ord.even?})
+  end
+
   it "should deep_set" do
-    nested_array2 = [:a, [:b, [[:c], :d], :e]]
+    nested_array2 = nested_array_generator[]
     test_deep_set(nested_array2, {1 => 1})
   end
 
@@ -165,8 +201,8 @@ describe Array do
   end
 
   it "should map_keys" do
-    array = [2, 3, 1, 0, 5]
-    every_other = [2, nil, 3, nil, 1, nil, 0, nil, 5]
+    array = [2, 3, 3, 1, 0, 5]
+    every_other = [2, nil, 3, nil, 3, nil, 1, nil, 0, nil, 5]
     by_value = [0, 1, 2, 3, nil, 5]
 
     assert_equal(every_other, array.map_keys{|k| k*2})

@@ -37,15 +37,7 @@ module DeepEnumerable
   ##
   # Deeply copy a DeepEnumerable
   def deep_dup
-    copy = self.dup
-    shallow_each do |k, v|
-      if v.respond_to?(:deep_dup)
-        copy[k] = v.deep_dup
-      else
-        copy[k] = (v.dup rescue v) # FixNum's and Symbol's can't/shouldn't be dup'd
-      end
-    end
-    copy
+    deep_select{true}
   end
 
   ##
@@ -128,6 +120,30 @@ module DeepEnumerable
   def deep_map_values(&block)
     deep_dup.deep_map_values!(&block)
   end
+ 
+  ##
+  # Filter leaf nodes by the result of the given block
+  #
+  def deep_select(&block)
+    copy = self.select{false} # get an empty version of this shallow collection
+
+    shallow_each do |k, v|
+      if v.respond_to?(:deep_select)
+        selected = v.deep_select(&block)
+
+        # Don't insert elements at arbitrary positions in an array if appending is an option
+        if copy.respond_to?('<<')
+          copy << selected
+        else
+          copy[k] = selected
+        end
+      elsif block.call(v)
+        copy[k] = (v.dup rescue v) # FixNum's and Symbol's can't/shouldn't be dup'd
+      end
+    end
+    
+    copy
+  end
 
   ##
   # Update a DeepEnumerable using a hash accessor
@@ -171,7 +187,7 @@ module DeepEnumerable
           block.call(k)
         end
 
-      self.delete(k)
+      self.delete(k) #TODO This is not defined on Enumerable!
       [new_key, v]
     end
 
