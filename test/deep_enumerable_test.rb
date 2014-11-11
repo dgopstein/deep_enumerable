@@ -98,7 +98,7 @@ describe Hash do
   end
 
   it "should deep_set" do
-    nested_hash2 = {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}
+    nested_hash2 = nested_hash_generator[]
     test_deep_set(nested_hash2, {:a => :c})
   end
 
@@ -106,6 +106,18 @@ describe Hash do
     vals = [1, 2, 3, 4, 5]
 
     test_deep_values(nested_hash, vals)
+  end
+
+  it "should deep_zip" do
+    test_deep_zip(nested_hash) {|x| x*2}
+
+    a = {a: 1, c: 3}
+    b = {b: 2, d: 4}
+    c = {c: 1, d: 4}
+    expected_ab = {a: [1, nil], c: [3, nil]}
+    expected_ac = {a: [1, nil], c: [3, 1]}
+    assert_equal(expected_ab, a.deep_zip(b))
+    assert_equal(expected_ac, a.deep_zip(c))
   end
 
   it "should map_keys" do
@@ -198,6 +210,18 @@ describe Array do
     vals = [:a, :b, :c, :d, :e]
 
     test_deep_values(nested_array, vals)
+  end
+
+  it "should deep_zip" do
+    test_deep_zip(nested_array, &:upcase)
+
+    a = [0, 1]
+    b = [2]
+    c = [3, 4, 5]
+    expected_ab = [[0, 2], [1, nil]]
+    expected_ac = [[0, 3], [1, 4]]
+    assert_equal(expected_ab, a.deep_zip(b))
+    assert_equal(expected_ac, a.deep_zip(c))
   end
 
   it "should map_keys" do
@@ -304,9 +328,23 @@ def test_deep_values(de, values)
   assert_equal(values, de.deep_values, 'returns leaf values')
 end
 
+def test_deep_zip(de, &block)
+  h1 = de
+  h2 = de.deep_map_values{|x| block.call(x)}
+  expected = h1.deep_map_values{|x| [x, block.call(x)]}
+  assert_equal(expected, h1.deep_zip(h2))
+  
+  # throw out first item
+  h1_2 = h1.reject{|k, v| k == h1.shallow_keys.last}
+  h2_2 = h2.reject{|k, v| k == h2.shallow_keys.last}
+  expected_1 = h1_2.deep_map_values{|v| [v, block.call(v)]}
+  expected_2 = h1.deep_map_values{|v| [v, if v == h1[h1.shallow_keys.last] || v.nil? then nil else block.call(v) end]}
+  assert_equal(expected_1, h1_2.deep_zip(h2))
+  assert_equal(expected_2, h1.deep_zip(h2_2))
+end
+
 def test_map_values(de, vals)
   mapped = de.map_values(&:class)
   assert_equal(de.class, mapped.class, 'deep_map_values preserves enumerable type')
   assert_equal(vals, mapped)
 end
-

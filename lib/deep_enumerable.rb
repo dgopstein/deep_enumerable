@@ -120,6 +120,13 @@ module DeepEnumerable
   def deep_map_values(&block)
     deep_dup.deep_map_values!(&block)
   end
+  
+  ##
+  # Filter leaf nodes by the result of the given block
+  #
+  def deep_reject(&block)
+    deep_select{|k, v| !block.call(k, v)} #TODO should be updated for arity
+  end
  
   ##
   # Filter leaf nodes by the result of the given block
@@ -132,8 +139,8 @@ module DeepEnumerable
         selected = v.deep_select(&block)
 
         # Don't insert elements at arbitrary positions in an array if appending is an option
-        if copy.respond_to?('<<')
-          copy << selected
+        if copy.respond_to?('push') # jruby has a Hash#<< method
+          copy.push(selected)
         else
           copy[k] = selected
         end
@@ -168,6 +175,27 @@ module DeepEnumerable
   # Return all leaf values
   def deep_values
     deep_flat_map{|_, v| v}
+  end
+
+  def deep_zip(other)
+    (shallow_keys).inject(empty) do |res, key|
+      s_val = self[key]
+      o_val = (other[key] rescue nil) #TODO don't rely on rescue
+
+      comparator = :==.to_proc
+
+      if s_val.respond_to?(:deep_zip) && o_val.respond_to?(:deep_zip)
+        diff = s_val.deep_zip(o_val)
+        diff.empty? ? res : res.deep_set(key, diff)
+      else
+        res.deep_set(key, [s_val, o_val])
+      end
+    end
+  end
+
+  # A version of this contain with no elements
+  def empty
+    select{false}
   end
   
   # Provide a homogenous |k,v| iterator for Arrays/Hashes/DeepEnumerables
