@@ -132,9 +132,16 @@ module DeepEnumerable
   # Filter leaf nodes by the result of the given block
   #
   def deep_select(&block)
-    copy = self.select{false} # get an empty version of this shallow collection
+    copy = empty
 
     shallow_each do |k, v|
+      #TODO should k be :nested_key or {:top_level_key => :nested_key}
+      predicate = if block.arity == 2 then
+                    ->{ block.call(k,v) }
+                  else
+                    ->{ block.call(v) }
+                  end
+
       if v.respond_to?(:deep_select)
         selected = v.deep_select(&block)
 
@@ -144,7 +151,7 @@ module DeepEnumerable
         else
           copy[k] = selected
         end
-      elsif block.call(v)
+      elsif predicate.call#block.call(v)#predicate.call
         copy[k] = (v.dup rescue v) # FixNum's and Symbol's can't/shouldn't be dup'd
       end
     end
