@@ -196,18 +196,9 @@ describe Array do
     test_deep_map_values(nested_array, vals)
   end
 
-  it "should deep_reject" do
-    expected = [[:b, [[], :d]]]
-    assert_equal(expected, nested_array.deep_reject{|sym| sym.to_s.ord.odd?})
-  end
-
   it "should deep_select" do
     expected = [[:b, [[], :d]]]
     assert_equal(expected, nested_array.deep_select{|sym| sym.to_s.ord.even?})
-
-    # arity == 2
-    expected = [[:b, [[], :d]]]
-    assert_equal(expected, nested_array.deep_select{|k, v| p k; k.even?})
   end
 
   it "should deep_set" do
