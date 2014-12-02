@@ -199,6 +199,10 @@ describe Array do
   it "should deep_select" do
     expected = [[:b, [[], :d]]]
     assert_equal(expected, nested_array.deep_select{|sym| sym.to_s.ord.even?})
+
+    shallow_a = [2, 3, 4]
+    assert_equal(shallow_a.select(&:even?), shallow_a.deep_select(&:even?))
+    assert_equal([[2, 4], 6] , [1, shallow_a, 6].deep_select(&:even?))
   end
 
   it "should deep_set" do
