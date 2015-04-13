@@ -82,6 +82,12 @@ describe Hash do
     test_deep_inject(nested_hash)
   end
 
+  it "should deep_intersect" do
+    assert_equal({:age=>25},
+                 {:name=>"alice", :age=>25}.deep_intersect(
+                  :name=>"bob",   :age=>25))
+  end
+
   it "should deep_map" do
     test_deep_map(nested_hash)
   end
@@ -184,6 +190,12 @@ describe Array do
 
   it "should deep_inject" do
     test_deep_inject(nested_array)
+  end
+
+  it "should deep_intersect" do
+    bob = {:friends=>["alice","carol"]}
+    carol = {:friends=>["alice","bob"]}
+    assert_equal({:friends=>["alice"]}, bob.deep_intersect(carol))
   end
 
   it "should deep_map" do

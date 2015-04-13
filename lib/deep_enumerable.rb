@@ -91,6 +91,41 @@ module DeepEnumerable
   def deep_inject(initial, &block)
     deep_each.inject(initial, &block)
   end
+  
+  ##
+  # Describes the similarities between two DeepEnumerables.
+  #
+  # Example:
+  #
+  # >> {:name=>"alice", :age=>25}.deep_intersect(:name=>"bob", :age=>25)
+  # => {:age=>25}
+  #
+  # >> bob = {:friends=>["alice","carol"]}
+  # >> carol = {:friends=>["alice","bob"]}
+  # >> bob.deep_intersect(carol)
+  # => {:friends=>["alice"]}
+  #
+  def deep_intersect(other, &block)
+    empty = self.deep_select{false} # only empty for shallow enumerables
+
+    (shallow_keys + other.shallow_keys).each do |key|
+      s_val = (self[key] rescue nil) #TODO don't rely on rescue
+      o_val = (other[key] rescue nil)
+
+      comparator = block || :==.to_proc
+
+      if s_val.respond_to?(:deep_intersect) && o_val.respond_to?(:deep_intersect)
+        int = s_val.deep_intersect(o_val, &block)
+        if !int.empty?
+          empty[key] = int
+        end
+      elsif comparator.call(s_val, o_val)
+        empty[key] = s_val
+      end
+    end
+
+    empty
+  end
 
   ##
   # Returns the result of running block on each leaf of this DeepEnumerable
