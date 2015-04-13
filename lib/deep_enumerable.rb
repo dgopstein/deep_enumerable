@@ -106,7 +106,7 @@ module DeepEnumerable
   # => {:friends=>["alice"]}
   #
   def deep_intersect(other, &block)
-    empty = self.deep_select{false} # only empty for shallow enumerables
+    copy = empty
 
     (shallow_keys + other.shallow_keys).each do |key|
       s_val = (self[key] rescue nil) #TODO don't rely on rescue
@@ -117,14 +117,14 @@ module DeepEnumerable
       if s_val.respond_to?(:deep_intersect) && o_val.respond_to?(:deep_intersect)
         int = s_val.deep_intersect(o_val, &block)
         if !int.empty?
-          empty[key] = int
+          copy[key] = int
         end
       elsif comparator.call(s_val, o_val)
-        empty[key] = s_val
+        copy[key] = s_val
       end
     end
 
-    empty
+    copy
   end
 
   ##
