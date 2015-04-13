@@ -169,18 +169,22 @@ module DeepEnumerable
   def deep_select(&block)
     copy = self.select{false} # get an empty version of this shallow collection
 
+    # insert/push a selected item into the copied enumerable
+    accept = lambda do |k, v|
+      # Don't insert elements at arbitrary positions in an array if appending is an option
+      if copy.respond_to?('push') # jruby has a Hash#<< method
+        copy.push(v)
+      else
+        copy[k] = v
+      end
+    end
+
     shallow_each do |k, v|
       if v.respond_to?(:deep_select)
         selected = v.deep_select(&block)
-
-        # Don't insert elements at arbitrary positions in an array if appending is an option
-        if copy.respond_to?('push') # jruby has a Hash#<< method
-          copy.push(selected)
-        else
-          copy[k] = selected
-        end
+        accept.call(k, selected)
       elsif block.call(v)
-        copy[k] = (v.dup rescue v) # FixNum's and Symbol's can't/shouldn't be dup'd
+        accept.call(k, (v.dup rescue v)) # FixNum's and Symbol's can't/shouldn't be dup'd
       end
     end
     
