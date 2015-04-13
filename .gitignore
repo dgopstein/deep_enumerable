@@ -19,3 +19,5 @@ doc/
 
 # vim files
 *.swp
+
+.DS_Store
