@@ -367,7 +367,7 @@ module DeepEnumerable
   #  >> inventory.deep_zip(prices)
   #  => {:fruit=>{:apples=>[4, 0.79], :oranges=>[7, 1.21]}}
   #
-  # @returns one data structure with elements from both arguments joined together
+  # @return one data structure with elements from both arguments joined together
   #
   def deep_zip(other)
     (shallow_keys).inject(empty) do |res, key|
@@ -454,6 +454,9 @@ module DeepEnumerable
     deep_dup.shallow_map_values!(&block)
   end
   
+  ##
+  # The primary iterator of a DeepEnumerable
+  # If this method is implemented DeepEnumerable can construct every other method in terms of shallow_each.
   #TODO test this
   def shallow_each(&block)
     shallow_key_value_pairs.each(&block)
