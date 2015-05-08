@@ -3,17 +3,19 @@
 module DeepEnumerable
   ##
   # Subtracts the leaves of one DeepEnumerable from another.
-  # Returns a result of the same structure as the primary DeepEnumerable.
   #
-  # Example:
+  # @return a result of the same structure as the primary DeepEnumerable.
   #
-  # >> {:name=>"alice", :age=>25}.deep_diff(:name=>"bob", :age=>25)
-  # => {:name=>"alice"}
+  # @example
+  #  >> alice = {:name=>"alice", :age=>26}
+  #  >> bob   = {:name=>"bob",   :age=>26}
+  #  >> alice.deep_diff(bob)
+  #  => {:name=>"alice"}
   #
-  # >> bob = {:friends=>["alice","bob"]}
-  # >> carol = {:friends=>["alice","carol"]}
-  # >> bob.deep_diff(carol)
-  # => {:friends=>"bob"}
+  #  >> bob   = {:friends=>["alice","carol"]}
+  #  >> carol = {:friends=>["alice","bob"]}
+  #  >> bob.deep_diff(carol)
+  #  => {:friends=>"carol"}
   #
   def deep_diff(other, &block)
     shallow_keys.inject(empty) do |res, key|
@@ -36,18 +38,19 @@ module DeepEnumerable
   
   ##
   # Computes the compliment of the intersection of two DeepEnumerables.
-  # Duplicates the common structure of two DeepEnumerables and returns
-  # the differing leaf elements a hash of tuples.
   #
-  # Example:
+  # @return The common structure of both arguments, with tuples containing differing values in the leaf nodes.
   #
-  # >> {:name=>"alice", :age=>25}.deep_diff_symmetric(:name=>"bob", :age=>25)
-  # => {:name=>["alice", "bob"]}
+  # @example
+  #  >> alice = {:name=>"alice", :age=>26}
+  #  >> bob   = {:name=>"bob",   :age=>26}
+  #  >> alice.deep_diff(bob)
+  #  => {:name=>["alice", "bob"]}
   #
-  # >> bob = {:friends=>["alice","bob"]}
-  # >> carol = {:friends=>["alice","carol"]}
-  # >> bob.deep_diff_symmetric(carol)
-  # => {:friends=>{1=>["bob", "carol"]}}
+  #  >> bob   = {:friends=>["alice","carol"]}
+  #  >> carol = {:friends=>["alice","bob"]}
+  #  >> bob.deep_diff_symmetric(carol)
+  #  => {:friends=>{1=>["carol", "bob"]}}
   #
   def deep_diff_symmetric(other, &block)
     (shallow_keys + other.shallow_keys).inject({}) do |res, key|
@@ -70,6 +73,8 @@ module DeepEnumerable
 
   ##
   # Deeply copy a DeepEnumerable
+  #
+  # @return the same data structure at a different memory address
   def deep_dup
     deep_select{true}
   end
@@ -77,7 +82,7 @@ module DeepEnumerable
   ##
   # Iterate elements of a DeepEnumerable
   #
-  # Example:
+  # @example
   #   >> {event: {id: 1, title: 'bowling'}}.deep_each.to_a
   #   => [[{:event=>:id}, 1], [{:event=>:title}, "bowling"]]
   # 
@@ -86,27 +91,41 @@ module DeepEnumerable
   #
   #   >> {events: [{title: 'movie'}, {title: 'dinner'}]}.deep_each.to_a
   #   => [[{:events=>{0=>:title}}, "movie"], [{:events=>{1=>:title}}, "dinner"]]
+  #
+  # @return an iterator over each deep-key/value pair for every leaf
   def deep_each(&block)
     depth_first_map.each(&block)
   end
 
   ##
-  # Returns an array with the results of running block once for every leaf element in the original structure.
+  # Concatenate all the results from the supplied code block together.
   #
-  # Example:
+  # @return an array with the results of running +block+ once for every leaf element in the original structure, all flattened together.
+  #
+  # @example
   #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_flat_map{|k,v| v*2}
   #  => [2, 4, 6, 8, 10]
+  #
+  #  >> {a: {b: 1, c: {d: 2, e: 3}, f: 4}, g: 5}.deep_flat_map{|k,v| [v, v*2]}
+  #  => [1, 2, 2, 4, 3, 6, 4, 8, 5, 10]
   def deep_flat_map(&block)
-    deep_each.map(&block)
+    deep_each.flat_map(&block)
   end
  
   ##
   # Retrieve a nested element from a DeepEnumerable
   #
-  # Example:
+  # @example
   #
-  # >> {"a"=>{"a"=>"aardvark", "b"=>["abacus", "abadon"], "c"=>"actuary"}}.deep_get("a"=>"b")
-  # => ["abacus", "abadon"]
+  #   >> prefix_tree = {"a"=>{"a"=>"aardvark", "b"=>["abacus", "abadon"], "c"=>"actuary"}}
+  #
+  #   >> prefix_tree.deep_get("a")
+  #   => {"a"=>"aardvark", "b"=>["abacus", "abadon"], "c"=>"actuary"}
+  #
+  #   >> prefix_tree.deep_get("a"=>"b")
+  #   => ["abacus", "abadon"]
+  #
+  # @return a DeepEnumerable representing the subtree specified by the query key
   #
   def deep_get(key)
     if nested_key?(key)
@@ -121,7 +140,15 @@ module DeepEnumerable
     end
   end
 
+  ##
   # Fold over all leaf nodes
+  # 
+  # @example
+  #  >> friends = [{name: 'alice', age: 26}, {name: 'bob', age: 26}]
+  #  >> friends.deep_inject(Hash.new{[]}) {|sum, (k, v)| sum[k.values.first] <<= v; sum}
+  #  => {:name=>["alice", "bob"], :age=>[26, 26]}
+  #
+  # @return The accumulation of the results of executing the provided block over every element in the DeepEnumerable
   def deep_inject(initial, &block)
     deep_each.inject(initial, &block)
   end
@@ -129,15 +156,18 @@ module DeepEnumerable
   ##
   # Describes the similarities between two DeepEnumerables.
   #
-  # Example:
+  # @example
+  #  >> alice = {:name=>"alice", :age=>26}
+  #  >> bob   = {:name=>"bob",   :age=>26}
+  #  >> alice.deep_intersect(bob)
+  #  => {:age=>26}
   #
-  # >> {:name=>"alice", :age=>25}.deep_intersect(:name=>"bob", :age=>25)
-  # => {:age=>25}
+  #  >> bob   = {:friends=>["alice","carol"]}
+  #  >> carol = {:friends=>["alice","bob"]}
+  #  >> bob.deep_intersect(carol)
+  #  => {:friends=>["alice"]}
   #
-  # >> bob = {:friends=>["alice","carol"]}
-  # >> carol = {:friends=>["alice","bob"]}
-  # >> bob.deep_intersect(carol)
-  # => {:friends=>["alice"]}
+  # @return a result of the same structure as the primary DeepEnumerable.
   #
   def deep_intersect(other, &block)
     copy = empty
@@ -163,6 +193,14 @@ module DeepEnumerable
 
   ##
   # Returns the result of running block on each leaf of this DeepEnumerable
+  #
+  # @example
+  #  >> h = {a: [1, 2]}
+  #  >> h.deep_map!{|k, v| [k, v]}
+  #  >> h
+  #  => {:a=>[[{:a=>0}, 1], [{:a=>1}, 2]]}
+  #
+  # @return The original structure updated by the result of the block
   def deep_map!(&block)
     if block_given?
       deep_each{|k,v| deep_set(k, block.call([k, v]))}
@@ -173,19 +211,39 @@ module DeepEnumerable
   end
  
   ##
-  # Returns a new nested structure where the result of running block is used as the values
+  # Create a new nested structure populated by the result of executing +block+ on the deep-keys and values of the original DeepEnumerable
+  #
+  # @example
+  #  >> {a: [1, 2]}.deep_map{|k, v| [k, v]}
+  #  => {:a=>[[{:a=>0}, 1], [{:a=>1}, 2]]}
+  #
+  # @return A copy of the input, updated by the result of the block
   def deep_map(&block)
     deep_dup.deep_map!(&block)
   end
 
   ##
-  # Modifies this collection to use the result of block as the values
+  # Modifies this collection to use the result of +block+ as the values
+  #
+  # @example
+  #  >> h = {a: [1, 2]}
+  #  >> h.deep_map_values!{v| v*2}
+  #  >> h
+  #  => {:a=>[2, 4]}
+  #
+  # @return The original structure updated by the result of the block
   def deep_map_values!(&block)
     deep_map!{|_, v| block.call(v)}
   end
 
   ##
-  # Returns a new nested structure where the result of running block is used as the values
+  # Creates a new nested structure populated by the result of executing +block+ on the values of the original DeepEnumerable
+  #
+  # @example
+  #  >> {a: [1, 2].deep_map_values{v| v*2}
+  #  => {:a=>[2, 4]}
+  #
+  # @return A copy of the input, updated by the result of the block
   def deep_map_values(&block)
     deep_dup.deep_map_values!(&block)
   end
@@ -193,13 +251,39 @@ module DeepEnumerable
   ##
   # Filter leaf nodes by the result of the given block
   #
+  # @example
+  #  >> inventory = {fruit: {apples: 4, oranges: 7}}
+  #
+  #  >> inventory.deep_reject{|k, v| v > 5}
+  #  => {:fruit=>{:apples=>4}}
+  #
+  #  >> inventory.deep_reject(&:even?)
+  #  => {:fruit=>{:oranges=>7}}
+  #
+  # @return a copy of the input, filtered by the given predicate
+  #
   def deep_reject(&block)
-    deep_select{|k, v| !block.call(k, v)} #TODO should be updated for arity
+    new_block =
+      case block.arity
+      when 2 then ->(k,v){!block.call(k, v)}
+      else        ->(v){  !block.call(v)}
+      end
+    deep_select(&new_block)
   end
  
   ##
   # Filter leaf nodes by the result of the given block
   #
+  # @example
+  #  >> inventory = {fruit: {apples: 4, oranges: 7}}
+  #
+  #  >> inventory.deep_select{|k, v| v > 5}
+  #  => {:fruit=>{:oranges=>7}}
+  #
+  #  >> inventory.deep_select(&:even?)
+  #  => {:fruit=>{:apples=>4}}
+  #
+  # @return a copy of the input, filtered by the given predicate
   def deep_select(&block)
     copy = self.select{false} # get an empty version of this shallow collection
 
@@ -217,8 +301,16 @@ module DeepEnumerable
       if v.respond_to?(:deep_select)
         selected = v.deep_select(&block)
         accept.call(k, selected)
-      elsif block.call(v)
-        accept.call(k, (v.dup rescue v)) # FixNum's and Symbol's can't/shouldn't be dup'd
+      else
+        res =
+          case block.arity
+          when 2 then block.call(k, v)
+          else    block.call(v)
+          end
+
+        if res
+          accept.call(k, (v.dup rescue v)) # FixNum's and Symbol's can't/shouldn't be dup'd
+        end
       end
     end
     
@@ -369,6 +461,9 @@ module DeepEnumerable
     key.is_a?(Hash)
   end
 
+  # Disassembles a key into its head and tail elements
+  #
+  # for example: {a: {0 => :a}} goes to [:a, {0 => :a}]
   def split_key(key)
     case key
     when Hash then
@@ -378,6 +473,13 @@ module DeepEnumerable
     when nil then [nil, nil]
     else [key, nil]
     end
+  end
+
+  # Get the lowest-level key
+  #
+  # for example: {a: {b: :c}} goes to :c
+  def self.leaf_key(key)
+    key.is_a?(Hash) ? leaf_key(key) : key
   end
 end
 

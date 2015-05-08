@@ -129,6 +129,7 @@ describe Hash do
 
   it "should deep_get" do
     test_deep_get(nested_hash, {:a => :b}, 1)
+    test_deep_get(nested_hash, {:a => :c}, {d: 2, e: 3})
   end
 
   it "should deep_inject" do
@@ -150,10 +151,21 @@ describe Hash do
 
     test_deep_map_values(nested_hash, vals)
   end
+
+  it "should deep_reject" do
+    expected = {:a=>{:c=>{:e=>3}}, :g=>5}
+    assert_equal(expected, nested_hash.deep_reject{|k, v| DeepEnumerable::leaf_key(k).to_s.ord.even?})
+
+    expected = {:a=>{:b=>1, :c=>{:e=>3}}, :g=>5}
+    assert_equal(expected, nested_hash.deep_reject(&:even?))
+  end
  
   it "should deep_select" do
     expected = {a: {c: {d: 2}, f: 4}}
     assert_equal(expected, nested_hash.deep_select(&:even?))
+
+    expected = {:a=>{:c=>{:e=>3}}, :g=>5}
+    assert_equal(expected, nested_hash.deep_select{|k, v| DeepEnumerable::leaf_key(k).to_s.ord.odd?})
   end
 
   it "should deep_set" do
@@ -239,6 +251,7 @@ describe Array do
 
   it "should deep_get" do
     test_deep_get(nested_array, {1 => 0}, :b)
+    test_deep_get(nested_array, {1 => 1}, [[:c], :d])
   end
 
   it "should deep_inject" do
@@ -267,6 +280,8 @@ describe Array do
 
     shallow_a = [2, 3, 4]
     assert_equal(shallow_a.select(&:even?), shallow_a.deep_select(&:even?))
+    assert_equal(shallow_a.select{|k,v| k.odd?}, shallow_a.deep_select{|k,v| k.odd?})
+
     assert_equal([[2, 4], 6] , [1, shallow_a, 6].deep_select(&:even?))
   end
 
@@ -347,6 +362,7 @@ end
 def test_deep_flat_map(de, keys, vals)
     assert_equal(keys, de.deep_flat_map(&:first).to_set, 'maps fully qualified keys')
     assert_equal(vals, de.deep_flat_map(&:last).to_set, 'maps values')
+    assert_equal(keys.zip(vals).flatten, de.deep_flat_map{|a, b| [a, b]}, 'maps keys and values')
 end
 
 def test_deep_get(de, key, val)
