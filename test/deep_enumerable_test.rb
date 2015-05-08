@@ -22,38 +22,91 @@ describe Hash do
   it "should deep_diff" do
     a = {:a => {:b => :c}}
     b = {:a => {:b => :d}}
+    a_diff = {:a => {:b => :c}}
+    b_diff = {:a => {:b => :d}}
+    assert_equal(a_diff, a.deep_diff(b), "swapped node a->b")
+    assert_equal(b_diff, b.deep_diff(a), "swapped node b->a")
+
+    a = {:a => {:b => :c}}
+    b = {:a => :b}
+    a_diff = {:a => {:b => :c}}
+    b_diff = {:a => :b}
+    assert_equal(a_diff, a.deep_diff(b), "different values a->b")
+    assert_equal(b_diff, b.deep_diff(a), "different values b->a")
+
+    a = {:a => {:b => :c}}
+    b = {:a => :b, :c => :d}
+    a_diff = {:a => {:b => :c}}
+    b_diff = {:a => :b, :c => :d}
+    assert_equal(a_diff, a.deep_diff(b), "new key a->b")
+    assert_equal(b_diff, b.deep_diff(a), "new key b->a")
+
+    a = [0, :b, 2]
+    b = {1 => :b, 2 => 3, :c => :d}
+    a_diff = [0, nil, 2]
+    b_diff = {2 => 3, :c => :d}
+    assert_equal(a_diff, a.deep_diff(b), "array vs hash")
+    assert_equal(b_diff, b.deep_diff(a), "hash vs array")
+
+    a = [{0 => :a}]
+    b = {0 => [:a]}
+    a_diff = []
+    b_diff = {}
+    assert_equal(a_diff, a.deep_diff(b), "nested array vs hash")
+    assert_equal(b_diff, b.deep_diff(a), "nested hash vs array")
+
+    a = {:a => Hash}
+    b = {:a => {1 => 2}}
+    a_diff = {}
+    b_diff = {:a => {1 => 2}}
+    assert_equal(a_diff, a.deep_diff(b, &:===), "class equality with to_proc a->b")
+    assert_equal(b_diff, b.deep_diff(a, &:===), "class equality with to_proc b->a")
+
+    a = {:a => Array}
+    b = {:a => {1 => 2}}
+    a_diff = {:a => Array}
+    b_diff = {:a => {1 => 2}}
+    assert_equal(a_diff, a.deep_diff(b){|a,b| a === b}, "class inequality with block a->b")
+    assert_equal(b_diff, b.deep_diff(a){|a,b| a === b}, "class inequality with block b->a")
+  end
+
+  it "should deep_diff_symmetric" do
+    a = {:a => {:b => :c}}
+    b = {:a => {:b => :d}}
     diff = {:a => {:b => [:c, :d]}}
-    assert_equal(diff, a.deep_diff(b), "swapped node")
+    assert_equal(diff, a.deep_diff_symmetric(b), "swapped node")
 
     a = {:a => {:b => :c}}
     b = {:a => :b}
     diff = {:a => [{:b => :c}, :b]}
-    assert_equal(diff, a.deep_diff(b), "different values")
+    assert_equal(diff, a.deep_diff_symmetric(b), "different values")
 
     a = {:a => {:b => :c}}
     b = {:a => :b, :c => :d}
     diff = {:a => [{:b => :c}, :b], :c => [nil, :d]}
-    assert_equal(diff, a.deep_diff(b), "new key")
+    assert_equal(diff, a.deep_diff_symmetric(b), "new key")
 
     a = [0, :b, 2]
-    b = {1 => :b, :c => :d}
-    diff = {0 => [0, nil], 2 => [2, nil], :c => [nil, :d]}
-    assert_equal(diff, a.deep_diff(b), "array vs hash")
+    b = {1 => :b, 2 => 3, :c => :d}
+    a_diff = {0 => [0, nil], 2 => [2, 3], :c => [nil, :d]}
+    b_diff = {0 => [nil, 0], 2 => [3, 2], :c => [:d, nil]}
+    assert_equal(a_diff, a.deep_diff_symmetric(b), "array vs hash")
+    assert_equal(b_diff, b.deep_diff_symmetric(a), "hash vs array")
 
     a = [{0 => :a}]
     b = {0 => [:a]}
     diff = {}
-    assert_equal(diff, a.deep_diff(b), "nested array vs hash")
+    assert_equal(diff, a.deep_diff_symmetric(b), "nested array vs hash")
 
     a = {:a => Hash}
     b = {:a => {1 => 2}}
     diff = {}
-    assert_equal(diff, a.deep_diff(b, &:===), "class equality with to_proc")
+    assert_equal(diff, a.deep_diff_symmetric(b, &:===), "class equality with to_proc")
 
     a = {:a => Array}
     b = {:a => {1 => 2}}
     diff = {:a => [Array, {1 => 2}]}
-    assert_equal(diff, a.deep_diff(b){|a,b| a === b}, "class inequality with block")
+    assert_equal(diff, a.deep_diff_symmetric(b){|a,b| a === b}, "class inequality with block")
   end
 
   it "should deep_dup" do

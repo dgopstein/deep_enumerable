@@ -2,22 +2,21 @@
 # A set of general methods that can be applied to any conformant nested structure
 module DeepEnumerable
   ##
-  # Describes the differences between two DeepEnumerables. The structure
-  # of the union of both collections is mapped onto a hash. For any element
-  # that differs between collections, values are placed into a length-2 array
+  # Subtracts the leaves of one DeepEnumerable from another.
+  # Returns a result of the same structure as the primary DeepEnumerable.
   #
   # Example:
   #
   # >> {:name=>"alice", :age=>25}.deep_diff(:name=>"bob", :age=>25)
-  # => {:name=>["alice", "bob"]}
+  # => {:name=>"alice"}
   #
-  # >> bob = {:friends=>["alice","carol"]}
-  # >> carol = {:friends=>["alice","bob"]}
+  # >> bob = {:friends=>["alice","bob"]}
+  # >> carol = {:friends=>["alice","carol"]}
   # >> bob.deep_diff(carol)
-  # => {:friends=>{1=>["carol", "bob"]}}
+  # => {:friends=>"bob"}
   #
   def deep_diff(other, &block)
-    (shallow_keys + other.shallow_keys).inject({}) do |res, key|
+    shallow_keys.inject(empty) do |res, key|
       s_val = (self[key] rescue nil) #TODO don't rely on rescue
       o_val = (other[key] rescue nil)
 
@@ -29,10 +28,45 @@ module DeepEnumerable
       elsif comparator.call(s_val, o_val)
         res
       else
+        res[key] = s_val
+        res
+      end
+    end
+  end
+  
+  ##
+  # Computes the compliment of the intersection of two DeepEnumerables.
+  # Duplicates the common structure of two DeepEnumerables and returns
+  # the differing leaf elements a hash of tuples.
+  #
+  # Example:
+  #
+  # >> {:name=>"alice", :age=>25}.deep_diff_symmetric(:name=>"bob", :age=>25)
+  # => {:name=>["alice", "bob"]}
+  #
+  # >> bob = {:friends=>["alice","bob"]}
+  # >> carol = {:friends=>["alice","carol"]}
+  # >> bob.deep_diff_symmetric(carol)
+  # => {:friends=>{1=>["bob", "carol"]}}
+  #
+  def deep_diff_symmetric(other, &block)
+    (shallow_keys + other.shallow_keys).inject({}) do |res, key|
+      s_val = (self[key] rescue nil) #TODO don't rely on rescue
+      o_val = (other[key] rescue nil)
+
+      comparator = block || :==.to_proc
+
+      if s_val.respond_to?(:deep_diff_symmetric) && o_val.respond_to?(:deep_diff_symmetric)
+        diff = s_val.deep_diff_symmetric(o_val, &block)
+        diff.empty? ? res : res.merge(key => diff)
+      elsif comparator.call(s_val, o_val)
+        res
+      else
         res.merge(key => [s_val, o_val])
       end
     end
   end
+  alias_method :deep_outersect, :deep_diff_symmetric
 
   ##
   # Deeply copy a DeepEnumerable
