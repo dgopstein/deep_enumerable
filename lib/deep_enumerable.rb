@@ -7,13 +7,13 @@ module DeepEnumerable
   # @return a result of the same structure as the primary DeepEnumerable.
   #
   # @example
-  #  >> alice = {:name=>"alice", :age=>26}
-  #  >> bob   = {:name=>"bob",   :age=>26}
+  #  >> alice = {name: "alice", age: 26}
+  #  >> bob   = {name: "bob",   age: 26}
   #  >> alice.deep_diff(bob)
   #  => {:name=>"alice"}
   #
-  #  >> bob   = {:friends=>["alice","carol"]}
-  #  >> carol = {:friends=>["alice","bob"]}
+  #  >> bob   = {friends: ["alice","carol"]}
+  #  >> carol = {friends: ["alice","bob"]}
   #  >> bob.deep_diff(carol)
   #  => {:friends=>"carol"}
   #
@@ -318,17 +318,26 @@ module DeepEnumerable
   end
 
   ##
-  # Update a DeepEnumerable using a hash accessor
+  # Update a DeepEnumerable, indexed by a deep-key
+  # Intermediate values are created when necessary, with the same type as its parent.
+  #
+  # @example
+  #  >> [].deep_set({1 => 2}, 3)
+  #  => [nil, [nil, nil, 3]]
+  #  >> {}.deep_set({1 => 2}, 3)
+  #  => {1=>{2=>3}}
+  #
+  # @return (tentative) returns the object that's been modified. Warning: This behavior is subject to change.
   #
   def deep_set(key, val)
     if nested_key?(key)
       key_head, key_tail = split_key(key)
       if self[key_head].respond_to?(:deep_set)
         self[key_head].deep_set(key_tail, val)
-	self
+        self
       else
-        self[key_head] = {}.deep_set(key_tail, val) #SHOULD? this default to {}?
-	self
+        self[key_head] = empty.deep_set(key_tail, val)
+        self
       end
     else
       self[key] = val
@@ -337,11 +346,29 @@ module DeepEnumerable
   end
  
   ##
-  # Return all leaf values
+  # List the values stored at every leaf
+  #
+  # @example
+  #  >> prefix_tree = {"a"=>{"a"=>"aardvark", "b"=>["abacus", "abadon"], "c"=>"actuary"}}
+  #  >> prefix_tree.deep_values
+  #  => ["aardvark", "abacus", "abadon", "actuary"]
+  #
+  # @return a list of every leaf value
   def deep_values
     deep_flat_map{|_, v| v}
   end
 
+  ##
+  # Combine two DeepEnumerables into one, with the elements from each joined into tuples
+  #
+  # @example
+  #  >> inventory = {fruit: {apples: 4,    oranges: 7}}
+  #  >> prices    = {fruit: {apples: 0.79, oranges: 1.21}}
+  #  >> inventory.deep_zip(prices)
+  #  => {:fruit=>{:apples=>[4, 0.79], :oranges=>[7, 1.21]}}
+  #
+  # @returns one data structure with elements from both arguments joined together
+  #
   def deep_zip(other)
     (shallow_keys).inject(empty) do |res, key|
       s_val = self[key]
@@ -358,21 +385,30 @@ module DeepEnumerable
     end
   end
 
-  # A version of this contain with no elements
+  ##
+  # A copy of the DeepEnumerable containing no elements
+  #
+  # @example
+  #  >> inventory = {fruit: {apples: 4, oranges: 7}}
+  #  >> inventory.empty
+  #  => {}
+  #
+  # @return a new object of the same type as the original collection, only empty
+  #
   def empty
     select{false}
   end
   
   # Provide a homogenous |k,v| iterator for Arrays/Hashes/DeepEnumerables
   #TODO test this
-  def key_value_pairs
+  def shallow_key_value_pairs
     shallow_keys.map{|k| [k, self[k]]}
   end
 
   ##
   # Replaces every top-level element with the result of the given block
-  def map_keys!(&block)
-    new_kvs = key_value_pairs.map do |k, v|
+  def shallow_map_keys!(&block)
+    new_kvs = shallow_key_value_pairs.map do |k, v|
       new_key = 
         if block.arity == 2
           block.call(k, v)
@@ -393,14 +429,14 @@ module DeepEnumerable
   
   ##
   # Returns a new collection where every top-level element is replaced with the result of the given block
-  def map_keys(&block)
-    deep_dup.map_keys!(&block)
+  def shallow_map_keys(&block)
+    deep_dup.shallow_map_keys!(&block)
   end
  
   ##
   # Replaces every top-level element with the result of the given block
-  def map_values!(&block)
-    key_value_pairs.each do |k, v|
+  def shallow_map_values!(&block)
+    shallow_key_value_pairs.each do |k, v|
         self[k] = 
           if block.arity == 2
             block.call(k, v)
@@ -414,13 +450,13 @@ module DeepEnumerable
 
   ##
   # Returns a new collection where every top-level element is replaced with the result of the given block
-  def map_values(&block)
-    deep_dup.map_values!(&block)
+  def shallow_map_values(&block)
+    deep_dup.shallow_map_values!(&block)
   end
   
   #TODO test this
   def shallow_each(&block)
-    key_value_pairs.each(&block)
+    shallow_key_value_pairs.each(&block)
   end
 
   # This method is commented out because redefining '.to_a' on Array, for example,
