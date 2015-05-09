@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'deep_enumerable'
-  s.version     = '0.1.1'
+  s.version     = '0.1.2'
   s.date        = '2015-05-08'
   s.summary     = "A library for manipulating nested collections"
   s.description = "A library for manipulating nested collections. See https://github.com/dgopstein/deep_enumerable for details"
