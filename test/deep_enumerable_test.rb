@@ -231,7 +231,25 @@ describe Array do
   #   # delete non-existent key
   # end
 
-  #TODO test deep_diff
+  it "should deep_diff" do
+    a = [{a: 1, b: 2}, {c: 3, d: 4}]
+    b = [{a: 1, b: 2}, {c: 3, d: 5}]
+    a_diff = [nil, {d: 4}]
+    b_diff = [nil, {d: 5}]
+
+    assert(a_diff, a.deep_diff(b))
+    assert(b_diff, b.deep_diff(a))
+  end
+
+  it "should deep_diff_symmetric" do
+    a = [{a: 1, b: 2}, {c: 3, d: 4}]
+    b = [{a: 1, b: 2}, {c: 3, d: 5}]
+    a_diff = {1 => {d: [4, 5]}}
+    b_diff = {1 => {d: [5, 4]}}
+
+    assert(a_diff, a.deep_diff_symmetric(b))
+    assert(b_diff, a.deep_diff_symmetric(a))
+  end
 
   it "should deep_dup" do
     test_deep_dup(nested_array_generator)
