@@ -50,7 +50,7 @@ module DeepEnumerable
   #  => {:friends=>{1=>["carol", "bob"]}}
   #
   def deep_diff_symmetric(other, &block)
-    (shallow_keys + other.shallow_keys).inject({}) do |res, key|
+    (shallow_keys + other.shallow_keys).each_with_object({}) do |key, res|
       s_val = (self[key] rescue nil) #TODO don't rely on rescue
       o_val = (other[key] rescue nil)
 
@@ -58,11 +58,9 @@ module DeepEnumerable
 
       if s_val.respond_to?(:deep_diff_symmetric) && o_val.respond_to?(:deep_diff_symmetric)
         diff = s_val.deep_diff_symmetric(o_val, &block)
-        diff.empty? ? res : res.merge(key => diff)
-      elsif comparator.call(s_val, o_val)
-        res
-      else
-        res.merge(key => [s_val, o_val])
+        res[key] = diff if diff.any?
+      elsif !comparator.call(s_val, o_val)
+        res[key] = [s_val, o_val]
       end
     end
   end
@@ -167,9 +165,7 @@ module DeepEnumerable
   # @return a result of the same structure as the primary DeepEnumerable.
   #
   def deep_intersect(other, &block)
-    copy = empty
-
-    (shallow_keys + other.shallow_keys).each do |key|
+    (shallow_keys + other.shallow_keys).each_with_object(empty) do |key, res|
       s_val = (self[key] rescue nil) #TODO don't rely on rescue
       o_val = (other[key] rescue nil)
 
@@ -177,15 +173,11 @@ module DeepEnumerable
 
       if s_val.respond_to?(:deep_intersect) && o_val.respond_to?(:deep_intersect)
         int = s_val.deep_intersect(o_val, &block)
-        if !int.empty?
-          copy[key] = int
-        end
+        res[key] = int if int.any?
       elsif comparator.call(s_val, o_val)
-        copy[key] = s_val
+        res[key] = s_val
       end
     end
-
-    copy
   end
 
   ##
