@@ -34,7 +34,7 @@ module DeepEnumerable
   end
   
   ##
-  # Computes the compliment of the intersection of two DeepEnumerables.
+  # Computes the complement of the intersection of two DeepEnumerables.
   #
   # @return The common structure of both arguments, with tuples containing differing values in the leaf nodes.
   #
