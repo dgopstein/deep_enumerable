@@ -41,7 +41,7 @@ module DeepEnumerable
   # @example
   #  >> alice = {:name=>"alice", :age=>26}
   #  >> bob   = {:name=>"bob",   :age=>26}
-  #  >> alice.deep_diff(bob)
+  #  >> alice.deep_diff_symmetric(bob)
   #  => {:name=>["alice", "bob"]}
   #
   #  >> bob   = {:friends=>["alice","carol"]}
