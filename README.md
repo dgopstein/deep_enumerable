@@ -1,4 +1,4 @@
-Deep Enumerable (α) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable.png?branch=master)](https://travis-ci.org/dgopstein/deep_enumerable) [![Code Climate](https://codeclimate.com/github/dgopstein/deep_enumerable/badges/gpa.svg)](https://codeclimate.com/github/dgopstein/deep_enumerable)
+DeepEnumerable (α) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable.png?branch=master)](https://travis-ci.org/dgopstein/deep_enumerable) [![Code Climate](https://codeclimate.com/github/dgopstein/deep_enumerable/badges/gpa.svg)](https://codeclimate.com/github/dgopstein/deep_enumerable)
 ===============
 
 A library for manipulating nested collections in Ruby
@@ -6,11 +6,11 @@ A library for manipulating nested collections in Ruby
 DeepEnumerable is an attempt to create a human-oriented general purpose collections library for nested collections. The main goals of this project are to improve ruby projects that deal with nested collections by increasing readability and code reuse while promoting functional programming and declarative data-modeling.
 
 ## What is a nested collection?
-A nested collection is a data structure wrapped in another datastructure!
+A nested collection is a data structure wrapped in another datas tructure!
 
 For example, a flat array might look like: `[1, 2, 3]` while a nested array might look like: `[1, [2, 3]]`
 
-Many other collections can be nested as well, e.g. Hashes: `{:a => :b, :c => {:d => :e}}`
+Other collections can be nested as well, e.g. Hashes: `{:a => :b, :c => {:d => :e}}`
 
 Collections can even be nested inside collections of a different type, as in lists of hashes: `[{:name => 'alice'}, {:name => 'bob'}]`, or hashes of lists: `{:name => 'carol', :favorite_colors => [:yellow, :blue]}`
 
@@ -41,7 +41,7 @@ We might reasonably want to do some sanity checking on the types of the configur
 NoMethodError: undefined method `[]' for nil:NilClass
 ```
 
-Instead using a DeepEnumerable we can model our rules as data, and find an errors in a single expression:
+Instead using a DeepEnumerable we can model our rules as data, and find errors in a single expression:
 
 ```ruby
 >> conf_types = {
