@@ -3,7 +3,16 @@ DeepEnumerable (α) [![Oh Noes!](https://travis-ci.org/dgopstein/deep_enumerable
 
 A library for manipulating nested collections in Ruby
 
-DeepEnumerable is an attempt to create a human-oriented general purpose collections library for nested collections. The main goals of this project are to improve ruby projects that deal with nested collections by increasing readability and code reuse while promoting functional programming and declarative data-modeling.
+## Installation
+
+```gem install deep_enumerable```
+
+## Usage
+
+```require 'deep_enumerable'```
+
+## Docs
+http://www.rubydoc.info/gems/deep_enumerable/DeepEnumerable/frames
 
 ## What is a nested collection?
 A nested collection is a data structure wrapped in another datas tructure!
