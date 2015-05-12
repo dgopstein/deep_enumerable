@@ -12,7 +12,7 @@ A library for manipulating nested collections in Ruby
 ```require 'deep_enumerable'```
 
 ## Docs
-http://www.rubydoc.info/gems/deep_enumerable/DeepEnumerable/frames
+http://www.rubydoc.info/gems/deep_enumerable/DeepEnumerable
 
 ## What is a nested collection?
 A nested collection is a data structure wrapped in another datas tructure!
