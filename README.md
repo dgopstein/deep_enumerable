@@ -101,7 +101,7 @@ def shallow_keys
 end
 ```
 
-## Contributing to deep_enumerable
+## Contributing
 
 Pull requests welcome.
  
