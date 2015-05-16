@@ -446,7 +446,6 @@ module DeepEnumerable
   ##
   # The primary iterator of a DeepEnumerable
   # If this method is implemented DeepEnumerable can construct every other method in terms of shallow_each.
-  #TODO test this
   def shallow_each(&block)
     shallow_key_value_pairs.each(&block)
   end

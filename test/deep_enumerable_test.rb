@@ -193,6 +193,18 @@ describe Hash do
     assert_equal(expected_ac, a.deep_zip(c))
   end
 
+  it "should shallow_each" do
+    expected = [[:a, {:b=>1, :c=>{:d=>2, :e=>3}, :f=>4}], [:g, 5]]
+    assert_equal(expected, nested_hash.shallow_each.to_a)
+
+    res = []
+    nested_hash.shallow_each{|k, v| res << [k, v]}
+    assert_equal(expected, res)
+
+    res = nested_hash.shallow_each{|k, v| nil}
+    assert_equal(expected, res)
+  end
+
   it "should shallow_map_keys" do
     upper_keys = {A: {b: 1, c: {d: 2, e: 3}, f: 4}, G: 5}
     class_keys = {Hash => {b: 1, c: {d: 2, e: 3}, f: 4}, Fixnum => 5}
@@ -328,6 +340,18 @@ describe Array do
     expected_ac = [[0, 3], [1, 4]]
     assert_equal(expected_ab, a.deep_zip(b))
     assert_equal(expected_ac, a.deep_zip(c))
+  end
+
+  it "should shallow_each" do
+    expected = [[0, :a], [1, [:b, [[:c], :d], :e]]]
+    assert_equal(expected, nested_array.shallow_each.to_a)
+
+    res = []
+    nested_array.shallow_each{|k, v| res << [k, v]}
+    assert_equal(expected, res)
+
+    res = nested_array.shallow_each{|k, v| nil}
+    assert_equal(expected, res)
   end
 
   it "should shallow_map_keys" do
