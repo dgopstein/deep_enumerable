@@ -123,8 +123,8 @@ module DeepEnumerable
   # @return a DeepEnumerable representing the subtree specified by the query key
   #
   def deep_get(key)
-    if nested_key?(key)
-      key_head, key_tail = split_key(key)
+    if DeepEnumerable::nested_key?(key)
+      key_head, key_tail = DeepEnumerable::split_key(key)
       if self[key_head].respond_to?(:deep_get)
         self[key_head].deep_get(key_tail)
       else
@@ -319,8 +319,8 @@ module DeepEnumerable
   # @return (tentative) returns the object that's been modified. Warning: This behavior is subject to change.
   #
   def deep_set(key, val)
-    if nested_key?(key)
-      key_head, key_tail = split_key(key)
+    if DeepEnumerable::nested_key?(key)
+      key_head, key_tail = DeepEnumerable::split_key(key)
       if self[key_head].respond_to?(:deep_set)
         self[key_head].deep_set(key_tail, val)
         self
@@ -466,7 +466,7 @@ module DeepEnumerable
   def depth_first_map(ancestry=[])
     shallow_each.flat_map do |key, val|
       full_ancestry = ancestry + [key]
-      full_key = deep_key_from_array(full_ancestry) #TODO this is an n^2 operation
+      full_key = DeepEnumerable::deep_key_from_array(full_ancestry) #TODO this is an n^2 operation
  
       if val.respond_to?(:depth_first_map, true) # Search protected methods as well
         val.depth_first_map(full_ancestry)
@@ -477,7 +477,7 @@ module DeepEnumerable
   end
 
   # Everything below should be a class method, but Ruby method visibility is a nightmare
-  def deep_key_from_array(array)
+  def self.deep_key_from_array(array)
     if array.size > 1
       {array.first => deep_key_from_array(array.drop(1))}
     else
@@ -485,14 +485,25 @@ module DeepEnumerable
     end
   end
 
-  def nested_key?(key)
+  # DeepEnumerable keys are represented as hashes, this function
+  # converts them to arrays for convenience
+  def self.deep_key_to_array(key)
+    if DeepEnumerable::nested_key?(key)
+      head, tail = split_key(key)
+      [head] + deep_key_to_array(tail)
+    else
+      [key]
+    end
+  end
+
+  def self.nested_key?(key)
     key.is_a?(Hash)
   end
 
   # Disassembles a key into its head and tail elements
   #
   # for example: {a: {0 => :a}} goes to [:a, {0 => :a}]
-  def split_key(key)
+  def self.split_key(key)
     case key
     when Hash then
     key_head = key.keys.first
@@ -507,7 +518,7 @@ module DeepEnumerable
   #
   # for example: {a: {b: :c}} goes to :c
   def self.leaf_key(key)
-    key.is_a?(Hash) ? leaf_key(key) : key
+    nested_key?(key) ? leaf_key(split_key(key)[1]) : key
   end
 end
 

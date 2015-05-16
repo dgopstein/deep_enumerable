@@ -350,6 +350,36 @@ describe Array do
   end
 end
 
+describe "Helper Functions" do
+  it "should deep_key_to_array" do
+    assert_equal(['a'], DeepEnumerable::deep_key_to_array('a'))
+    assert_equal([:a], DeepEnumerable::deep_key_to_array(:a))
+    assert_equal([1], DeepEnumerable::deep_key_to_array(1))
+
+    assert_equal(['b', 'a'], DeepEnumerable::deep_key_to_array({'b' => 'a'}))
+    assert_equal([:b, :a], DeepEnumerable::deep_key_to_array({:b => :a}))
+    assert_equal([2, 1], DeepEnumerable::deep_key_to_array({2 => 1}))
+
+    assert_equal(['c', 'b', 'a'], DeepEnumerable::deep_key_to_array({'c' => {'b' => 'a'}}))
+    assert_equal([:c, :b, :a], DeepEnumerable::deep_key_to_array({:c => {:b => :a}}))
+    assert_equal([3, 2, 1], DeepEnumerable::deep_key_to_array({3 => {2 => 1}}))
+  end
+
+  it "should leaf_key" do
+    assert_equal('a', DeepEnumerable::leaf_key('a'))
+    assert_equal(:a, DeepEnumerable::leaf_key(:a))
+    assert_equal(1, DeepEnumerable::leaf_key(1))
+
+    assert_equal('a', DeepEnumerable::leaf_key({'b' => 'a'}))
+    assert_equal(:a, DeepEnumerable::leaf_key({:b => :a}))
+    assert_equal(1, DeepEnumerable::leaf_key({2 => 1}))
+
+    assert_equal('a', DeepEnumerable::leaf_key({'c' => {'b' => 'a'}}))
+    assert_equal(:a, DeepEnumerable::leaf_key({:c => {:b => :a}}))
+    assert_equal(1, DeepEnumerable::leaf_key({3 => {2 => 1}}))
+  end
+end
+
 def test_deep_dup(de_generator)
   de = de_generator.call
   untouched = de_generator.call
