@@ -15,7 +15,7 @@ A library for manipulating nested collections in Ruby
 http://www.rubydoc.info/gems/deep_enumerable/DeepEnumerable
 
 ## What is a nested collection?
-A nested collection is a data structure wrapped in another datas tructure!
+A nested collection is a data structure wrapped in another data structure!
 
 For example, a flat array might look like: `[1, 2, 3]` while a nested array might look like: `[1, [2, 3]]`
 
