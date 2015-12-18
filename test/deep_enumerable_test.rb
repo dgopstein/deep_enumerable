@@ -172,7 +172,15 @@ describe Hash do
     nested_hash2 = nested_hash_generator[]
     test_deep_set(nested_hash2, {:a => :c})
 
-    assert_equal({1=>{2=>3}}, {}.deep_set({1 => 2}, 3), 'create intermediate hashes')
+    assert_equal({1=>{2=>3}}, {}.deep_set({1 => 2}, 3), 'create intermediate hashes with hash key')
+    assert_equal({1=>{2=>3}}, {}.deep_set([1, 2], 3), 'create intermediate hashes with array key')
+
+    assert_equal({1=>{2=>{3=>4}}}, {}.deep_set({1 => {2 => 3}}, 4), 'create deeper intermediate hashes with hash key')
+    assert_equal({1=>{2=>{3=>4}}}, {}.deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key')
+
+    assert_equal({1=>{2=>{3=>4}}},         {1 => 2}.deep_set({1 => {2 => 3}}, 4), 'create deeper intermediate hashes with hash key and branch collision')
+    assert_equal({1=>{2=>{3=>4}}},         {1 => {2 => 3}}.deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
+    assert_equal({1=>{2=>{3=>4}, 3 => 2}}, {1 => {3 => 2}}.deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
   end
 
   it "should deep_values" do
@@ -322,6 +330,14 @@ describe Array do
     test_deep_set(nested_array2, {1 => 1})
   
     assert_equal([nil, [nil, nil, 3]], [].deep_set({1 => 2}, 3), 'create intermediate arrays')
+    assert_equal([nil, [nil, nil, 3]], [].deep_set([1, 2], 3), 'create intermediate hashes with array key')
+
+    assert_equal([nil, [nil, nil, [nil, nil, nil, 4]]],
+      [nil, [nil, nil, 3]].deep_set({1 => {2 => 3}}, 4), 'create deeper intermediate hashes with hash key and branch collision')
+    assert_equal([nil, [nil, nil, [nil, nil, nil, 4]]],
+      [nil, [nil, nil, [nil, nil, nil, 4]]].deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
+    assert_equal([nil, [nil, nil, [nil, nil, nil, 4, 5]]],
+      [nil, [nil, nil, [nil, nil, nil, 3, 5]]].deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
   end
 
   it "should deep_values" do
@@ -401,6 +417,13 @@ describe "Helper Functions" do
     assert_equal('a', DeepEnumerable::leaf_key({'c' => {'b' => 'a'}}))
     assert_equal(:a, DeepEnumerable::leaf_key({:c => {:b => :a}}))
     assert_equal(1, DeepEnumerable::leaf_key({3 => {2 => 1}}))
+  end
+
+  it "should split_key" do
+    assert_equal([:a, {0 => :a}], DeepEnumerable::split_key({a: {0 => :a}}))
+    assert_equal([0, :a], DeepEnumerable::split_key({0 => :a}))
+    assert_equal([:a, [0, :a]], DeepEnumerable::split_key([:a, 0, :a]))
+    assert_equal([0, :a], DeepEnumerable::split_key([0, :a]))
   end
 end
 

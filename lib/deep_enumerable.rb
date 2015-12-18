@@ -307,14 +307,15 @@ module DeepEnumerable
   end
 
   ##
-  # Update a DeepEnumerable, indexed by a deep-key
+  # Update a DeepEnumerable, indexed by an Array or Hash.
+  #
   # Intermediate values are created when necessary, with the same type as its parent.
   #
   # @example
   #  >> [].deep_set({1 => 2}, 3)
   #  => [nil, [nil, nil, 3]]
-  #  >> {}.deep_set({1 => 2}, 3)
-  #  => {1=>{2=>3}}
+  #  >> {}.deep_set([1, 2, 3], 4)
+  #  => {1=>{2=>{3=>4}}}
   #
   # @return (tentative) returns the object that's been modified. Warning: This behavior is subject to change.
   #
@@ -496,17 +497,26 @@ module DeepEnumerable
   end
 
   def self.nested_key?(key)
-    key.is_a?(Hash)
+    key.is_a?(Hash) || key.is_a?(Array)
   end
 
   # Disassembles a key into its head and tail elements
   #
-  # for example: {a: {0 => :a}} goes to [:a, {0 => :a}]
+  # @example
+  #  >> DeepEnumerable.split_key({a: {0 => :a}})
+  #  => [:a, {0 => :a}]
+  #  >> DeepEnumerable.split_key([a: [0 => :a]])
+  #  => [a:, [0, :a]]
+  #
   def self.split_key(key)
     case key
     when Hash then
     key_head = key.keys.first
     key_tail = key[key_head]
+    [key_head, key_tail]
+    when Array then
+    key_head = key.first
+    key_tail = if key.size == 2 then key.last else key.drop(1) end
     [key_head, key_tail]
     when nil then [nil, nil]
     else [key, nil]
