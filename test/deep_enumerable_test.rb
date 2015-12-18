@@ -181,6 +181,8 @@ describe Hash do
     assert_equal({1=>{2=>{3=>4}}},         {1 => 2}.deep_set({1 => {2 => 3}}, 4), 'create deeper intermediate hashes with hash key and branch collision')
     assert_equal({1=>{2=>{3=>4}}},         {1 => {2 => 3}}.deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
     assert_equal({1=>{2=>{3=>4}, 3 => 2}}, {1 => {3 => 2}}.deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
+
+    assert_equal({1=>2}, {}.deep_set([1], 2), 'set using a singular key')
   end
 
   it "should deep_values" do
@@ -338,6 +340,8 @@ describe Array do
       [nil, [nil, nil, [nil, nil, nil, 4]]].deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
     assert_equal([nil, [nil, nil, [nil, nil, nil, 4, 5]]],
       [nil, [nil, nil, [nil, nil, nil, 3, 5]]].deep_set([1, 2, 3], 4), 'create deeper intermediate hashes with array key and leaf collision')
+
+    assert_equal([nil, 2], [].deep_set([1], 2), 'set using a singular key')
   end
 
   it "should deep_values" do
@@ -396,6 +400,10 @@ describe "Helper Functions" do
     assert_equal([:a], DeepEnumerable::deep_key_to_array(:a))
     assert_equal([1], DeepEnumerable::deep_key_to_array(1))
 
+    assert_equal(['a'], DeepEnumerable::deep_key_to_array(['a']))
+    assert_equal([:a], DeepEnumerable::deep_key_to_array([:a]))
+    assert_equal([1], DeepEnumerable::deep_key_to_array([1]))
+
     assert_equal(['b', 'a'], DeepEnumerable::deep_key_to_array({'b' => 'a'}))
     assert_equal([:b, :a], DeepEnumerable::deep_key_to_array({:b => :a}))
     assert_equal([2, 1], DeepEnumerable::deep_key_to_array({2 => 1}))
@@ -423,7 +431,8 @@ describe "Helper Functions" do
     assert_equal([:a, {0 => :a}], DeepEnumerable::split_key({a: {0 => :a}}))
     assert_equal([0, :a], DeepEnumerable::split_key({0 => :a}))
     assert_equal([:a, [0, :a]], DeepEnumerable::split_key([:a, 0, :a]))
-    assert_equal([0, :a], DeepEnumerable::split_key([0, :a]))
+    assert_equal([0, [:a]], DeepEnumerable::split_key([0, :a]))
+    assert_equal([:a, nil], DeepEnumerable::split_key([:a]))
   end
 end
 
@@ -506,6 +515,10 @@ def test_deep_set(de, key)
   non_existant_key = {1 => {2 => 3}}
   dc.deep_set(non_existant_key, 44)
   assert_equal(44, dc.deep_get(non_existant_key))
+
+  singular_key = [7]
+  dc.deep_set(singular_key, 45)
+  assert_equal(45, dc.deep_get(singular_key[0]))
 end
 
 def test_deep_values(de, values)

@@ -322,17 +322,21 @@ module DeepEnumerable
   def deep_set(key, val)
     if DeepEnumerable::nested_key?(key)
       key_head, key_tail = DeepEnumerable::split_key(key)
-      if self[key_head].respond_to?(:deep_set)
-        self[key_head].deep_set(key_tail, val)
-        self
+
+      if key_tail.nil?
+        self[key_head] = val
       else
-        self[key_head] = empty.deep_set(key_tail, val)
-        self
+        if self[key_head].respond_to?(:deep_set)
+          self[key_head].deep_set(key_tail, val)
+        else
+          self[key_head] = empty.deep_set(key_tail, val)
+        end
       end
-    else
+    elsif !key.nil? # don't index on nil
       self[key] = val
-      self #SHOULD? return val instead of self
     end
+
+    self #SHOULD? return val instead of self
   end
  
   ##
@@ -491,6 +495,8 @@ module DeepEnumerable
     if DeepEnumerable::nested_key?(key)
       head, tail = split_key(key)
       [head] + deep_key_to_array(tail)
+    elsif key.nil?
+      []
     else
       [key]
     end
@@ -511,13 +517,15 @@ module DeepEnumerable
   def self.split_key(key)
     case key
     when Hash then
-    key_head = key.keys.first
-    key_tail = key[key_head]
-    [key_head, key_tail]
+      key_head = key.keys.first
+      key_tail = key[key_head]
+      [key_head, key_tail]
     when Array then
-    key_head = key.first
-    key_tail = if key.size == 2 then key.last else key.drop(1) end
-    [key_head, key_tail]
+      case key.size
+        when 0 then [nil, nil]
+        when 1 then [key[0], nil]
+        else [key[0], key.drop(1)]
+      end
     when nil then [nil, nil]
     else [key, nil]
     end
