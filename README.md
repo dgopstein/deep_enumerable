@@ -69,7 +69,7 @@ Instead using a DeepEnumerable we can model our rules as data, and find errors i
 
 ## What else is DeepEnumerable?
 
-DeepEnumerable provides a few interesting methods on a couple different standard data structuers. Here are some examples:
+DeepEnumerable provides a few interesting methods on a couple different standard data structures. Here are some examples:
 
 Iterate and transform leaf nodes:
 ```ruby
